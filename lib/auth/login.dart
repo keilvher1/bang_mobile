@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scrd/after_login.dart';
+
 // import 'package:provider/provider.dart';
 // import '../provider/application_provider.dart';
 // import '../Auth/widget.dart';
@@ -25,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   // 카카오 로그인 메서드
   //Future<void> kakaoLogin(ApplicationProvider appProvider) async {
-    Future<void> kakaoLogin() async {
+  Future<void> kakaoLogin() async {
     try {
       // 카카오톡으로 로그인
       OAuthToken token = await UserApi.instance.loginWithKakaoTalk();
@@ -64,56 +65,66 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     // final appProvider = Provider.of<ApplicationProvider>(context, listen: false);
 
-    return  Semantics(
-                button: true,
-                label: '카카오 로그인',
-                hint: '카카오 계정으로 로그인',
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await kakaoLogin();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Semantics(
-                      // 이미지에 시맨틱 레이블 추가
-                      label: '카카오 로그인 버튼 이미지',
-                      child: Image.asset(
-                        'assets/kakao_login/ko/kakao_login_large_wide.png', // 카카오 로그인 이미지
-                        height: 48, // 원하는 크기로 조정 가능
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 30),
+        Text('log in',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.white),),
+        const SizedBox(height: 30),
+        Semantics(
+          button: true,
+          label: 'Log in with Kakao',
+          hint: '카카오 계정으로 로그인',
+          child: Center(
+            child: ElevatedButton(
+              onPressed: () async {
+                await kakaoLogin();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFfee502),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
-              );
-              // const SizedBox(height: 30),
-              //
-              // // 회원가입 텍스트 버튼에 시맨틱 태그 추가
-              // Semantics(
-              //   button: true,
-              //   label: '회원가입',
-              //   hint: '새 계정 생성',
-              //   child: Align(
-              //     alignment: Alignment.center,
-              //     child: TextButton(
-              //       onPressed: () {
-              //         // 회원가입 페이지로 이동
-              //       },
-              //       child: const Text(
-              //         '계정이 없으신가요? 회원가입',
-              //         style: TextStyle(color: Colors.blue, fontSize: 14),
-              //       ),
-              //     ),
-              //   ),
-              // ),
-          //   ],
-          // );
-
+              ),
+              child: Semantics(
+                // 이미지에 시맨틱 레이블 추가
+                label: '카카오 로그인 버튼 이미지',
+                child: Image.asset(
+                  'assets/kakao_login/en/kakao_login_large_narrow.png',
+                  // 카카오 로그인 이미지
+                  height: 40, // 원하는 크기로 조정 가능
+                  width: 180, // 원하는 크기로 조정 가능
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 250),
+      ],
+    );
+    // const SizedBox(height: 30),
+    //
+    // // 회원가입 텍스트 버튼에 시맨틱 태그 추가
+    // Semantics(
+    //   button: true,
+    //   label: '회원가입',
+    //   hint: '새 계정 생성',
+    //   child: Align(
+    //     alignment: Alignment.center,
+    //     child: TextButton(
+    //       onPressed: () {
+    //         // 회원가입 페이지로 이동
+    //       },
+    //       child: const Text(
+    //         '계정이 없으신가요? 회원가입',
+    //         style: TextStyle(color: Colors.blue, fontSize: 14),
+    //       ),
+    //     ),
+    //   ),
+    // ),
+    //   ],
+    // );
   }
 }
