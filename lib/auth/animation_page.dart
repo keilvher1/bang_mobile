@@ -13,7 +13,6 @@ class _AnimationPageState extends State<AnimationPage>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _textAnimationController;
-  late AnimationController _outerTextController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _moveAnimationLeft;
   late Animation<double> _moveAnimationRight;
@@ -22,25 +21,23 @@ class _AnimationPageState extends State<AnimationPage>
   void initState() {
     super.initState();
 
-    // 텍스트 이동 애니메이션 컨트롤러
+    // Text animation controller
     _textAnimationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    // 왼쪽으로 이동하는 애니메이션
     _moveAnimationLeft = Tween<double>(begin: 200.0, end: -200.0).animate(
       CurvedAnimation(parent: _textAnimationController, curve: Curves.easeOut),
     );
 
-    // 오른쪽으로 이동하는 애니메이션
     _moveAnimationRight = Tween<double>(begin: -200.0, end: 200.0).animate(
       CurvedAnimation(parent: _textAnimationController, curve: Curves.easeOut),
     );
 
     _textAnimationController.forward();
 
-    // 페이드 아웃 애니메이션 컨트롤러
+    // Fade animation controller
     _fadeController = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -50,7 +47,7 @@ class _AnimationPageState extends State<AnimationPage>
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOut),
     );
 
-    // 애니메이션이 종료되면 메인 페이지로 이동
+    // Redirect to main page after animation
     Future.delayed(const Duration(seconds: 3), () {
       _fadeController.forward().then((value) => widget.onFinish());
     });
@@ -66,7 +63,7 @@ class _AnimationPageState extends State<AnimationPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFD90206), // 빨간색 배경
+      backgroundColor: const Color(0xFFD90206), // Red background
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Stack(
@@ -75,26 +72,26 @@ class _AnimationPageState extends State<AnimationPage>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // 가장 바깥 사각형
+                  // Outer rectangle
                   _buildRotatedBoxWithText2(
-                    -10,
-                    750,
+                    -9.775,
+                    1000,
                     "FOLLOW",
                     "SCARLET",
                     "THREADS",
                   ),
-                  // 중간 사각형
+                  // Middle rectangle
                   _buildRotatedBoxWithText(
-                    10,
-                    300,
+                    9.067,
+                    180,
                     "FOLLOW",
                     "SCARLET",
                     "THREADS",
                   ),
-                  // 가장 안쪽 사각형
+                  // Inner rectangle
                   _buildRotatedBoxWithText(
-                    -10,
-                    150,
+                    -6.8,
+                    100,
                     "FOLLOW",
                     "SCARLET",
                     "THREADS",
@@ -102,36 +99,37 @@ class _AnimationPageState extends State<AnimationPage>
                 ],
               ),
             ),
-            // 흰색 텍스트 추가
-            // 흰색 텍스트 추가 - 위쪽 좌상향으로 이동
+            // Upper left text
             Positioned(
-              top: MediaQuery.of(context).size.height / 2 - 300, // 더 위로 이동
-              left: MediaQuery.of(context).size.width / 4 - 90, // 더 왼쪽으로 이동
+              top: MediaQuery.of(context).size.height / 6,
+              left: MediaQuery.of(context).size.width / 8,
               child: Transform.rotate(
-                angle: -9.775 * 3.14159 / 180, // 각도 조정
+                angle: -9.775 * 3.14159 / 180,
                 child: const Text(
                   "ESCAPE ROOM\nTEAM MATCHING",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontFamily: 'NeueHaasDisplay',
+                    fontSize: 17,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
-            // 흰색 텍스트 추가 - 아래쪽 우하향으로 이동
+            // Lower right text
             Positioned(
-              top: MediaQuery.of(context).size.height / 2 + 240, // 더 아래로 이동
-              right: MediaQuery.of(context).size.width / 4 - 60, // 더 오른쪽으로 이동
+              bottom: MediaQuery.of(context).size.height / 3,
+              left: 0,
               child: Transform.rotate(
-                angle: -9.775 * 3.14159 / 180, // 각도 조정
+                angle: -9.775 * 3.14159 / 180,
                 child: const Text(
                   "ESCAPE ROOM\nTEAM MATCHING",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontFamily: 'NeueHaasDisplay',
+                    fontSize: 17,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -144,47 +142,76 @@ class _AnimationPageState extends State<AnimationPage>
   }
 
   Widget _buildRotatedBoxWithText(
-      double angle,
-      double size,
-      String text1,
-      String text2,
-      String text3,
-      ) {
+    double angle,
+    double size,
+    String text1,
+    String text2,
+    String text3,
+  ) {
     return Transform.rotate(
-      angle: angle * 3.14159 / 180, // 기울기 각도
+      angle: angle * 3.14159 / 180,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // 사각형 배경
           Container(
             width: size,
-            height: size * 1.2,
+            height: size * 1.4,
             decoration: BoxDecoration(
-              color: const Color(0xFFD90206),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5), // 그림자 색상 (진하게)
-                  blurRadius: 30, // 그림자 퍼짐 정도
-                  spreadRadius: 5, // 그림자 확산 정도
-                  offset: const Offset(0, 15), // 그림자 위치
-                ),
-              ],
+              color: const Color(0xFFD90206), // 빨간색 배경
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFFD90206),
+                // border: Border.all(
+                //   color: Colors.black,
+                //   width: 1, // 테두리 두께
+                // ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.6),
+                    offset: Offset(5, 5), // 그림자 위치
+                    blurRadius: 15,
+                    spreadRadius: -5, // 그림자 확산 조정
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.6),
+                    offset: Offset(0, 5), // 그림자 위치
+                    blurRadius: 15,
+                    spreadRadius: -5, // 그림자 확산 조정
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.6),
+                    offset: Offset(5, 0), // 그림자 위치
+                    blurRadius: 15,
+                    spreadRadius: -5, // 그림자 확산 조정
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.6),
+                    offset: Offset(0, 0), // 그림자 위치
+                    blurRadius: 15,
+                    spreadRadius: -5, // 그림자 확산 조정
+                  ),
+                ],
+              ),
             ),
           ),
           // 사각형 내부 텍스트
           ClipRect(
-            child: Container(
+            child: SizedBox(
               width: size,
-              height: size * 1.2,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildAnimatedText(text1, _moveAnimationLeft),
-                  const SizedBox(height: 20), // 텍스트 간 간격 조정
-                  _buildAnimatedText(text2, _moveAnimationRight),
-                  const SizedBox(height: 20), // 텍스트 간 간격 조정
-                  _buildAnimatedText(text3, _moveAnimationLeft),
-                ],
+              height: size * 1.4,
+              child: SingleChildScrollView(
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildAnimatedText(text1, _moveAnimationLeft),
+                      _buildAnimatedText(text2, _moveAnimationRight),
+                      _buildAnimatedText(text3, _moveAnimationLeft),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -194,44 +221,46 @@ class _AnimationPageState extends State<AnimationPage>
   }
 
   Widget _buildRotatedBoxWithText2(
-      double angle,
-      double size,
-      String text1,
-      String text2,
-      String text3,
-      ) {
+    double angle,
+    double size,
+    String text1,
+    String text2,
+    String text3,
+  ) {
     return Transform.rotate(
-      angle: angle * 3.14159 / 180, // 기울기 각도
+      angle: angle * 3.14159 / 180,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // 사각형 배경
-          Container(
-            width: size,
-            height: size * 1.2,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD90206),
-              boxShadow: [
-                // BoxShadow(
-                //   color: Colors.black.withOpacity(0.3),
-                //   blurRadius: 20,
-                //   offset: const Offset(0, 10),
-                // ),
-              ],
-            ),
-          ),
+          // Container(
+          //   width: size,
+          //   height: size * 1.4,
+          //   decoration: BoxDecoration(
+          //     color: const Color(0xFFD90206),
+          //     boxShadow: [
+          //       BoxShadow(
+          //         color: Colors.black.withOpacity(0.5),
+          //         blurRadius: 20,
+          //         spreadRadius: 5,
+          //         offset: const Offset(0, 15),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           // 사각형 내부 텍스트
           ClipRect(
-            child: Container(
-              width: size,
-              height: size * 1.2,
+            // 초과된 내용 잘라내기
+            child: SizedBox(
+              width: size * 2,
+              height: size * 1.4,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildAnimatedText2(text1, _moveAnimationLeft),
-                  const SizedBox(height: 60), // 텍스트 간 간격 조정
+                  // const SizedBox(height: 10), // 텍스트 간 간격 조정
                   _buildAnimatedText2(text2, _moveAnimationRight),
-                  const SizedBox(height: 60), // 텍스트 간 간격 조정
+                  // const SizedBox(height: 10), // 텍스트 간 간격 조정
                   _buildAnimatedText2(text3, _moveAnimationLeft),
                 ],
               ),
@@ -247,35 +276,39 @@ class _AnimationPageState extends State<AnimationPage>
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(animation.value, 0), // 텍스트 이동
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 30,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
+          offset: Offset(animation.value, 0),
+          child: Text(
+            softWrap: false,
+            text,
+            style: const TextStyle(
+              overflow: TextOverflow.visible,
+              height: 0,
+              fontFamily: 'NeueHaasDisplay',
+              fontSize: 90,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
             ),
           ),
         );
       },
     );
   }
+
   Widget _buildAnimatedText2(String text, Animation<double> animation) {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(animation.value, 0), // 텍스트 이동
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 75,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
+          offset: Offset(animation.value, 0),
+          child: Text(
+            softWrap: false,
+            text,
+            style: const TextStyle(
+              overflow: TextOverflow.visible,
+              fontFamily: 'NeueHaasDisplay',
+              fontSize: 120,
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
             ),
           ),
         );
