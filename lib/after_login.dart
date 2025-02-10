@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:scrd/page/tier_page.dart';
+
+import 'auth/login.dart';
 
 class AfterLogin extends StatefulWidget {
   const AfterLogin({Key? key}) : super(key: key);
@@ -11,6 +15,8 @@ class _AfterLoginState extends State<AfterLogin> {
   // 탭 선택 상태
   TagOption selectedOption = TagOption.scarlet;
   String selectedCircle = "고객 센터"; // 선택된 버튼 초기값
+  final _storage = const FlutterSecureStorage();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,18 +24,37 @@ class _AfterLoginState extends State<AfterLogin> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 상단 큰 문구
-                Text(
-                  "THERE'S THE\nSCARLET THREAD OF MURDER\nRUNNING THROUGH THE\nCOLOURLESS SKEIN OF LIFE",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    height: 1.4,
+                GestureDetector(
+                  onTap: () {
+                    // Future<void> logout() async {
+                    //   await _storage.delete(key: 'accessToken');
+                    //   debugPrint('로그아웃 성공');
+                    //
+                    //   // 로그인 페이지로 이동
+                    //   Navigator.pushReplacement(
+                    //     context,
+                    //     MaterialPageRoute(builder: (context) => LoginPage()),
+                    //   );
+                    // }
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => TierPage()),
+                    );
+                  },
+                  child: Text(
+                    "THERE'S THE\nSCARLET THREAD OF MURDER\nRUNNING THROUGH THE\nCOLOURLESS SKEIN OF LIFE",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -230,11 +255,11 @@ class _AfterLoginState extends State<AfterLogin> {
     0.2126, 0.7152, 0.0722, 0, 0, // Red
     0.2126, 0.7152, 0.0722, 0, 0, // Green
     0.2126, 0.7152, 0.0722, 0, 0, // Blue
-    0,      0,      0,      1, 0, // Alpha
+    0, 0, 0, 1, 0, // Alpha
   ];
 
   /// 하단의 원형 메뉴(고객 센터 / 더보기)
-  Widget _buildCircleMenu(String title, List<String> items, bool isSelected){
+  Widget _buildCircleMenu(String title, List<String> items, bool isSelected) {
     return Container(
       width: 140,
       height: 140,
@@ -258,7 +283,7 @@ class _AfterLoginState extends State<AfterLogin> {
             ),
             const SizedBox(height: 8),
             ...items.map(
-                  (e) => Text(
+              (e) => Text(
                 e,
                 textAlign: TextAlign.center,
                 style: TextStyle(
