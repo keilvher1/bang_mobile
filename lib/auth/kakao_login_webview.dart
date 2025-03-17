@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:scrd/after_login.dart';
+import 'package:scrd/page/after_login.dart';
+import 'package:scrd/page/nav_page.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -66,9 +67,11 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
     try {
       final response = await http.get(
         Uri.parse(
-            "http://172.17.209.59:8000/scrd/auth/kakao-login?code=$authCode"),
+            // "http://172.17.209.59:8000/scrd/auth/kakao-login?code=$authCode"),
+            "http://172.17.144.55:8000/scrd/auth/kakao-login?code=$authCode"),
         headers: {
-          "Origin": "http://172.17.209.59:8000", // 서버 헤더 구성
+          // "Origin": "http://172.17.209.59:8000", // 서버 헤더 구성
+          "Origin": "http://172.17.144.55:8000", // 서버 헤더 구성
         },
       );
 
@@ -76,7 +79,7 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
         debugPrint("Server Response: ${response.body}");
         // Navigator.pop(context, authCode); // WebView 닫고 authCode 반환
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => AfterLogin()), // 이동할 화면
+          MaterialPageRoute(builder: (context) => NavPage()), // 이동할 화면
           (Route<dynamic> route) => false, // 이전 모든 경로 제거
         );
       } else {

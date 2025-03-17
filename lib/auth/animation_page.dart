@@ -75,7 +75,7 @@ class _AnimationPageState extends State<AnimationPage>
                   // Outer rectangle
                   _buildRotatedBoxWithText2(
                     -9.775,
-                    1000,
+                    800,
                     "FOLLOW",
                     "SCARLET",
                     "THREADS",
@@ -101,7 +101,7 @@ class _AnimationPageState extends State<AnimationPage>
             ),
             // Upper left text
             Positioned(
-              top: MediaQuery.of(context).size.height / 6,
+              top: MediaQuery.of(context).size.height / 8,
               left: MediaQuery.of(context).size.width / 8,
               child: Transform.rotate(
                 angle: -9.775 * 3.14159 / 180,
@@ -163,10 +163,6 @@ class _AnimationPageState extends State<AnimationPage>
             child: Container(
               decoration: BoxDecoration(
                 color: Color(0xFFD90206),
-                // border: Border.all(
-                //   color: Colors.black,
-                //   width: 1, // 테두리 두께
-                // ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
@@ -232,35 +228,20 @@ class _AnimationPageState extends State<AnimationPage>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 사각형 배경
-          // Container(
-          //   width: size,
-          //   height: size * 1.4,
-          //   decoration: BoxDecoration(
-          //     color: const Color(0xFFD90206),
-          //     boxShadow: [
-          //       BoxShadow(
-          //         color: Colors.black.withOpacity(0.5),
-          //         blurRadius: 20,
-          //         spreadRadius: 5,
-          //         offset: const Offset(0, 15),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           // 사각형 내부 텍스트
           ClipRect(
             // 초과된 내용 잘라내기
             child: SizedBox(
               width: size * 2,
-              height: size * 1.4,
+              height: size * 1,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildAnimatedText2(text1, _moveAnimationLeft),
-                  // const SizedBox(height: 10), // 텍스트 간 간격 조정
+
                   _buildAnimatedText2(text2, _moveAnimationRight),
-                  // const SizedBox(height: 10), // 텍스트 간 간격 조정
+                  // SizedBox(height: 2),
                   _buildAnimatedText2(text3, _moveAnimationLeft),
                 ],
               ),
@@ -284,9 +265,9 @@ class _AnimationPageState extends State<AnimationPage>
               overflow: TextOverflow.visible,
               height: 0,
               fontFamily: 'NeueHaasDisplay',
+              fontWeight: FontWeight.w600,
               fontSize: 90,
               color: Colors.black,
-              fontWeight: FontWeight.w500,
             ),
           ),
         );
@@ -306,9 +287,9 @@ class _AnimationPageState extends State<AnimationPage>
             style: const TextStyle(
               overflow: TextOverflow.visible,
               fontFamily: 'NeueHaasDisplay',
-              fontSize: 120,
+              fontSize: 150,
               color: Colors.black,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         );

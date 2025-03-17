@@ -28,15 +28,20 @@ class _TierPageState extends State<TierPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "WHAT\nTIE_R\nU?",
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 75,
-                    fontWeight: FontWeight.bold,
-                    height: 1.1,
-                    fontFamily: 'NeueHaasDisplay',
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    "WHAT\nTIE_R\nU?",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 74,
+                      fontWeight: FontWeight.w500,
+                      height: 1.1,
+                      fontFamily: 'NeueHaasDisplay',
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -54,7 +59,7 @@ class _TierPageState extends State<TierPage> {
                   child: Text("HOLMES (259)",
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontFamily: 'NeueHaasDisplay',
                       )),
                 ),
@@ -95,7 +100,7 @@ class _TierPageState extends State<TierPage> {
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.3),
                                 fontSize: 250,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 fontFamily: 'NeueHaasDisplay',
                               ),
                             ),
@@ -116,7 +121,7 @@ class _TierPageState extends State<TierPage> {
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 40,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                     fontFamily: 'NeueHaasDisplay',
                                   ),
                                 ),
@@ -128,6 +133,7 @@ class _TierPageState extends State<TierPage> {
                                     color: Colors.white,
                                     fontSize: 20,
                                     fontFamily: 'NeueHaasDisplay',
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 SizedBox(height: 25),
@@ -136,6 +142,7 @@ class _TierPageState extends State<TierPage> {
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 27,
+                                    fontWeight: FontWeight.w600,
                                     fontFamily: 'NeueHaasDisplay',
                                   ),
                                 ),

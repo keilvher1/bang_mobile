@@ -4,7 +4,7 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../after_login.dart';
+import '../page/after_login.dart';
 import 'kakao_login_webview.dart';
 
 class LoginPage extends StatefulWidget {
@@ -125,11 +125,11 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 30),
-        Text(
-          'log in',
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
+        // Text(
+        //   'log in',
+        //   style: TextStyle(
+        //       fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+        // ),
         const SizedBox(height: 30),
         Center(
           child: ElevatedButton(
@@ -139,7 +139,8 @@ class _LoginPageState extends State<LoginPage> {
                 MaterialPageRoute(
                   builder: (context) => KakaoLoginWebView(
                     clientId: '6b4d8cc48ec73499504d519e26c84c91',
-                    redirectUri: 'http://172.17.209.59:8000/login/oauth/kakao',
+                    redirectUri: 'http://172.17.144.55:8000/login/oauth/kakao',
+                    // redirectUri: 'http://172.17.209.59:8000/login/oauth/kakao',
                   ),
                 ),
               );
