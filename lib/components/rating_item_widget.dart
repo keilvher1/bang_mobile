@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class RatingItemWidget extends StatelessWidget {
+class RatingItemWidget extends StatefulWidget {
   final String label;
-  final String? imagePath; // 이미지 경로를 위한 필드
+  final String? imagePath; // 이미지 경로
   final Color? color;
   final String? value;
   final String? subText;
@@ -17,62 +17,61 @@ class RatingItemWidget extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _RatingItemWidgetState createState() => _RatingItemWidgetState();
+}
+
+class _RatingItemWidgetState extends State<RatingItemWidget> {
+  bool _isSelected = false; // 아이콘 색상 상태
+
+  void _toggleSelection() {
+    setState(() {
+      _isSelected = !_isSelected; // 클릭 시 상태 변경
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
+    return GestureDetector(
+      onTap: _toggleSelection, // 클릭 이벤트
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        if (imagePath != null)
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                imagePath!,
-                color: color,
-                width: 16,
-                height: 16,
-              ),
-              if (value != null)
-                Text(
-                  value!,
-                  style: TextStyle(color: color, fontSize: 11),
+              if (widget.imagePath != null)
+                Image.asset(
+                  widget.imagePath!,
+                  color: _isSelected ? Colors.red : widget.color, // 클릭 시 색 변경
+                  width: 16,
+                  height: 16,
                 ),
-            ],
-          )
-        else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                value ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (subText != null)
+              if (widget.value != null)
                 Padding(
-                  padding: const EdgeInsets.only(left: 2.0),
+                  padding: const EdgeInsets.only(left: 4),
                   child: Text(
-                    subText!,
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    widget.value!,
+                    style: TextStyle(
+                      color:
+                          _isSelected ? Colors.red : widget.color, // 클릭 시 색 변경
                       fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
             ],
           ),
-      ],
+        ],
+      ),
     );
   }
 }

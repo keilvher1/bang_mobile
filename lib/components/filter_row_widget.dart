@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class FilterRowWidget extends StatelessWidget {
+class FilterRowWidget extends StatefulWidget {
   final double height;
   final double horizontalPadding;
   final double iconSize;
@@ -19,6 +19,26 @@ class FilterRowWidget extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _FilterRowWidgetState createState() => _FilterRowWidgetState();
+}
+
+class _FilterRowWidgetState extends State<FilterRowWidget> {
+  bool _isHorrorSelected = false;
+  bool _isActivitySelected = false;
+
+  void _toggleHorror() {
+    setState(() {
+      _isHorrorSelected = !_isHorrorSelected;
+    });
+  }
+
+  void _toggleActivity() {
+    setState(() {
+      _isActivitySelected = !_isActivitySelected;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -30,11 +50,21 @@ class FilterRowWidget extends StatelessWidget {
           const SizedBox(width: 5),
           _buildDropdownButton('난이도', ['난이도', '쉬움', '보통', '어려움']),
           const SizedBox(width: 5),
-          _buildIconTextButton('공포도', 'assets/button/knife.png'),
+          _buildIconTextButton(
+            '공포도',
+            'assets/icon/ghost_no.png',
+            _isHorrorSelected,
+            _toggleHorror,
+          ),
           const SizedBox(width: 5),
-          _buildIconTextButton('활동성', 'assets/button/sneaker.png'),
+          _buildIconTextButton(
+            '활동성',
+            'assets/icon/shoe_no.png',
+            _isActivitySelected,
+            _toggleActivity,
+          ),
           const SizedBox(width: 14),
-          _buildCircleIconButton('assets/icon/radio.png'),
+          _buildCircleIconButton('assets/button/filter.png'),
         ],
       ),
     );
@@ -42,16 +72,15 @@ class FilterRowWidget extends StatelessWidget {
 
   Widget _buildDropdownButton(String label, List<String> options) {
     return Container(
-      height: height,
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 2),
+      height: widget.height,
+      padding: EdgeInsets.symmetric(
+          horizontal: widget.horizontalPadding, vertical: 2),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(30),
       ),
       child: IntrinsicWidth(
-        // 너비를 최소한으로 유지
         child: DropdownButtonHideUnderline(
-          // 밑줄 제거
           child: DropdownButton<String>(
             value: label,
             items: options.map<DropdownMenuItem<String>>((String value) {
@@ -60,9 +89,9 @@ class FilterRowWidget extends StatelessWidget {
                 child: Text(
                   value,
                   style: TextStyle(
-                    color: fontColor,
-                    fontSize: fontSize,
-                    fontWeight: fontWeight,
+                    color: widget.fontColor,
+                    fontSize: widget.fontSize,
+                    fontWeight: widget.fontWeight,
                   ),
                 ),
               );
@@ -71,16 +100,12 @@ class FilterRowWidget extends StatelessWidget {
             dropdownColor: Colors.black,
             icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
             iconSize: 16,
-            // 아이콘 크기 조정
-            iconDisabledColor: Colors.white,
             isDense: true,
-            // 버튼 높이 최소화
             isExpanded: false,
-            // 너비 최소화
             style: TextStyle(
-              color: fontColor,
-              fontSize: fontSize,
-              fontWeight: fontWeight,
+              color: widget.fontColor,
+              fontSize: widget.fontSize,
+              fontWeight: widget.fontWeight,
             ),
           ),
         ),
@@ -88,33 +113,43 @@ class FilterRowWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildIconTextButton(String text, String iconPath) {
-    return Container(
-      height: height,
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Center(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              iconPath,
-              width: iconSize,
-              height: iconSize,
-            ),
-            const SizedBox(width: 4), // 간격 조정
-            Text(
-              text,
-              style: TextStyle(
-                color: fontColor,
-                fontSize: fontSize,
-                fontWeight: fontWeight,
+  Widget _buildIconTextButton(
+    String text,
+    String iconPath,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: widget.height,
+        padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          border: Border.all(color: Colors.white),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                iconPath,
+                width: widget.iconSize,
+                height: widget.iconSize,
+                color: isSelected ? Colors.black : Colors.white,
               ),
-            ),
-          ],
+              const SizedBox(width: 7),
+              Text(
+                text,
+                style: TextStyle(
+                  color: isSelected ? Colors.black : widget.fontColor,
+                  fontSize: widget.fontSize,
+                  fontWeight: widget.fontWeight,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -124,16 +159,16 @@ class FilterRowWidget extends StatelessWidget {
     return Container(
       width: 27,
       height: 27,
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        shape: BoxShape.circle,
-      ),
+      // decoration: BoxDecoration(
+      //   color: Colors.grey[800],
+      //   shape: BoxShape.circle,
+      // ),
       child: IconButton(
         icon: Image.asset(
           iconPath,
-          color: fontColor,
+          fit: BoxFit.contain,
         ),
-        iconSize: iconSize,
+        iconSize: widget.iconSize,
         onPressed: () {},
         padding: EdgeInsets.zero,
       ),

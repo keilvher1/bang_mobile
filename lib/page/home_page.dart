@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:scrd/components/buttons.dart';
 
 import '../components/filter_row_widget.dart';
 import '../provider/bottomsheet_provider.dart';
@@ -52,13 +53,15 @@ class _DateGridPageState extends State<DateGridPage> {
     Color? color,
     String? value,
     String? subText,
+    double? imageSize,
+    double? fontSize,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white70,
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -69,17 +72,23 @@ class _DateGridPageState extends State<DateGridPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(),
               Image.asset(
+                alignment: Alignment.center,
                 imagePath,
                 color: color,
-                width: 16,
-                height: 16,
+                width: imageSize,
+                height: imageSize,
               ),
-              if (value != null)
-                Text(
-                  value,
-                  style: TextStyle(color: color, fontSize: 11),
-                ),
+              value != null
+                  ? Text(
+                      value,
+                      style: TextStyle(
+                          color: color,
+                          fontSize: fontSize ?? 11,
+                          fontWeight: FontWeight.w700),
+                    )
+                  : SizedBox(),
             ],
           )
         else
@@ -88,9 +97,9 @@ class _DateGridPageState extends State<DateGridPage> {
             children: [
               Text(
                 value ?? '',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 11,
+                  fontSize: fontSize ?? 11,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -108,111 +117,6 @@ class _DateGridPageState extends State<DateGridPage> {
             ],
           ),
       ],
-    );
-  }
-
-  Widget filterRow() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(width: 8),
-          Container(
-            height: 29,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: DropdownButton<String>(
-              value: '지역',
-              items: <String>['지역', '옵션1', '옵션2']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.white)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {},
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            height: 29,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: DropdownButton<String>(
-              value: '난이도',
-              items: <String>['난이도', '쉬움', '보통', '어려움']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: const TextStyle(color: Colors.white)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {},
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            height: 29,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: TextButton.icon(
-              onPressed: () {},
-              icon: Image.asset(
-                'assets/button/knife.png', // 원하는 이미지 경로
-                width: 24, // 크기 조절
-                height: 24,
-              ),
-              label: const Text('공포도 X',
-                  style: TextStyle(color: Colors.white, fontSize: 13)),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            height: 29,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: TextButton.icon(
-              onPressed: () {},
-              icon: Image.asset(
-                'assets/button/sneaker.png', // 원하는 이미지 경로
-                width: 24,
-                height: 24,
-              ),
-              label: const Text('활동성 X', style: TextStyle(color: Colors.white)),
-            ),
-          ),
-          const SizedBox(width: 33),
-          Container(
-            width: 27,
-            height: 27,
-            decoration: BoxDecoration(
-              color: Colors.grey[800], // 둥근 버튼 배경색
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Image.asset(
-                'assets/icon/radio.png', // 이미지 경로
-                color: Colors.white, // 이미지 색상 (필요 시 적용)
-              ),
-              iconSize: 24, // 아이콘 크기
-              onPressed: () {},
-            ),
-          )
-        ],
-      ),
     );
   }
 
@@ -246,7 +150,7 @@ class _DateGridPageState extends State<DateGridPage> {
                                 '상세 정보',
                                 style: TextStyle(
                                   color: provider.selectedTabIndex == 0
-                                      ? Colors.red
+                                      ? Color(0xffD90206)
                                       : Colors.white,
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -256,15 +160,30 @@ class _DateGridPageState extends State<DateGridPage> {
                             const SizedBox(width: 16),
                             GestureDetector(
                               onTap: () => provider.setTabIndex(1),
-                              child: Text(
-                                '리뷰 12+',
-                                style: TextStyle(
-                                  color: provider.selectedTabIndex == 1
-                                      ? Colors.red
-                                      : Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '리뷰',
+                                    style: TextStyle(
+                                      color: provider.selectedTabIndex == 1
+                                          ? Color(0xffD90206)
+                                          : Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Transform.translate(
+                                    offset: const Offset(0, -9),
+                                    child: Text(
+                                      '12+',
+                                      style: TextStyle(
+                                          color: provider.selectedTabIndex == 1
+                                              ? Color(0xffD90206)
+                                              : Colors.white,
+                                          fontSize: 11),
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
                           ],
@@ -282,12 +201,14 @@ class _DateGridPageState extends State<DateGridPage> {
                           : _buildReviewContent(),
                     ),
                     provider.selectedTabIndex == 1
-                        ? Center(
-                            child: Text(
-                            '전체 리뷰',
-                            style: TextStyle(color: Colors.red),
-                          ))
+                        ? SizedBox()
+                        // Center(
+                        //         child: Text(
+                        //         '전체 리뷰',
+                        //         style: TextStyle(color: Color(0xffD90206)),
+                        //       ))
                         : SizedBox(),
+                    const SizedBox(height: 30),
                     _buildActionButtons()
                   ],
                 ),
@@ -308,12 +229,15 @@ class _DateGridPageState extends State<DateGridPage> {
           children: [
             const Row(
               children: [
-                Text(
-                  '머니머니 부동산',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '머니머니 부동산',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -332,7 +256,10 @@ class _DateGridPageState extends State<DateGridPage> {
                     borderRadius: BorderRadius.circular(20)),
                 child: Text(
                   '강남',
-                  style: TextStyle(color: Colors.black, fontSize: 10),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(width: 8),
@@ -344,19 +271,50 @@ class _DateGridPageState extends State<DateGridPage> {
                 style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ]),
-            const SizedBox(height: 22),
-            const SizedBox(height: 8),
+            const SizedBox(height: 15),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildRatingItem(
+                    label: '난이도',
+                    value: '5',
+                    imagePath: 'assets/icon/puzzle_red.png',
+                    imageSize: 23,
+                    color: Color(0xffD90206)),
+                SizedBox(width: 14),
+                _buildRatingItem(
+                  label: '장치비율',
+                  value: '7:3',
+                  fontSize: 17,
+                  color: Color(0xffD90206),
+                ),
+                SizedBox(width: 14),
+                _buildRatingItem(
+                    label: '공포도',
+                    imagePath: 'assets/icon/ghost.png',
+                    imageSize: 23),
+                SizedBox(width: 14),
+                _buildRatingItem(
+                    label: '활동성',
+                    imagePath: 'assets/icon/shoe_in.png',
+                    imageSize: 23),
+              ],
+            ),
+            const SizedBox(height: 25),
+            // Divider(
+            //   color: Color(0xff363636),
+            // ),
             const Text(
               '테마 설명',
               style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
+                  color: Colors.white,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               '안녕하세요, 어른이 여러분. 오래만에 우리 어른이 여러분들을 위해서 새로운 주제를 들고 왔는데, 뭘까~요? 짜잔! 바로바로 키이스케이프사에서 야심 차게 출시한 시즌 2 "머니머니 부.동.산!" 울고 싶을 만큼 혹독한 세상에서도 이왕이면 내 건물 안에서 우는 게 나으니까! 본격 머니머니 룸과 자본주의의 꽃, 부동산의 콜라보. 지금 바로 주문하세요!',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: Color(0xff929292), fontSize: 13),
             ),
           ],
         ),
@@ -365,6 +323,19 @@ class _DateGridPageState extends State<DateGridPage> {
   }
 
   Widget _buildReviewContent() {
+    List<String> tags = ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"];
+    void _addTag(String tag) {
+      setState(() {
+        tags.add(tag);
+      });
+    }
+
+    void _removeTag(String tag) {
+      setState(() {
+        tags.remove(tag);
+      });
+    }
+
     return ListView.builder(
       itemCount: 2,
       itemBuilder: (context, index) {
@@ -377,25 +348,63 @@ class _DateGridPageState extends State<DateGridPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.grey,
-                        radius: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'saint0325(tier)',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.white, // 배경색 설정
+                            radius: 20, // 아바타 크기 설정
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/needle.png',
+                                width: 25, // 원하는 크기로 조정
+                                height: 25,
+                                fit: BoxFit.contain, // 원 안에 이미지 맞추기
+                              ),
                             ),
                           ),
-                          Text(
-                            '3개월 전',
-                            style: TextStyle(color: Colors.white70),
+                          const SizedBox(width: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize:
+                                MainAxisSize.max, // Row가 전체 너비를 차지하도록 설정
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '60분 35초 / 75분',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xffC9C9C9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2), // 간격 추가
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '성공 / 힌트 3개 ',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xffC9C9C9),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        '• 3개월 전', // 중간 점(•) 추가
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xffC9C9C9),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -405,15 +414,57 @@ class _DateGridPageState extends State<DateGridPage> {
                     icon: const Icon(
                       Icons.more_vert,
                       color: Colors.white,
+                      size: 20,
                     ),
                     onPressed: () {},
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
-                style: TextStyle(color: Colors.white70),
+              SizedBox(height: 13),
+              Padding(
+                  padding: const EdgeInsets.only(left: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildRatingItem(
+                            label: '평점',
+                            value: '4.0',
+                            fontSize: 14,
+                            color: Color(0xffD90206),
+                          ),
+                          SizedBox(width: 14),
+                          _buildRatingItem(
+                              label: '난이도',
+                              value: '5',
+                              imagePath: 'assets/icon/puzzle_red.png',
+                              imageSize: 23,
+                              color: Color(0xffD90206)),
+                          SizedBox(width: 14),
+                          _buildRatingItem(
+                              label: '공포도',
+                              imagePath: 'assets/icon/ghost.png',
+                              imageSize: 23),
+                          SizedBox(width: 14),
+                          _buildRatingItem(
+                              label: '활동성',
+                              imagePath: 'assets/icon/shoe_in.png',
+                              imageSize: 23),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      hashtag(tags, _addTag, _removeTag),
+                      const SizedBox(height: 15),
+                      const Text(
+                        '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                    ],
+                  )),
+              SizedBox(
+                height: 12,
               ),
               const Divider(color: Color(0xff363636)),
             ],
@@ -424,29 +475,35 @@ class _DateGridPageState extends State<DateGridPage> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        OutlinedButton(
-          onPressed: () {},
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: Colors.white),
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+    return Padding(
+      padding: const EdgeInsets.only(top: 3.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          OutlinedButton(
+            onPressed: () {},
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+            ),
+            child: const Text('공유하기'),
           ),
-          child: const Text('리뷰작성'),
-        ),
-        ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+            ),
+            child:
+                const Text('예약하기', style: TextStyle(color: Color(0xffD90206))),
           ),
-          child: const Text('예약하기', style: TextStyle(color: Colors.red)),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
+  bool isBookmarkClicked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -498,10 +555,12 @@ class _DateGridPageState extends State<DateGridPage> {
                               vertical: 5, horizontal: 15),
                           margin: const EdgeInsets.only(left: 1),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.red : Colors.transparent,
+                            color: isSelected
+                                ? Color(0xffD90206)
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(15),
                             border: isToday
-                                ? Border.all(color: Colors.red, width: 1)
+                                ? Border.all(color: Color(0xffD90206), width: 1)
                                 : Border.all(color: Colors.transparent),
                           ),
                           child: Column(
@@ -512,10 +571,10 @@ class _DateGridPageState extends State<DateGridPage> {
                                   color:
                                       isSelected ? Colors.white : Colors.white,
                                   fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(height: 9),
+                              SizedBox(height: 7),
                               Text(
                                 DateFormat('E', 'ko_KR').format(date),
                                 style: TextStyle(
@@ -549,10 +608,10 @@ class _DateGridPageState extends State<DateGridPage> {
               iconSize: 12.0,
               fontSize: 13.0,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 5),
           ],
         ),
-        toolbarHeight: 150,
+        toolbarHeight: 130,
       ),
       body: ListView.builder(
         itemCount: 5,
@@ -564,7 +623,7 @@ class _DateGridPageState extends State<DateGridPage> {
               margin:
                   const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: Padding(
-                padding: const EdgeInsets.only(left: 16.0),
+                padding: const EdgeInsets.only(left: 0.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -575,21 +634,101 @@ class _DateGridPageState extends State<DateGridPage> {
                         Container(
                           width: 144,
                           height: 161,
-                          color: Color(0xffD9D9D9),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Stack(
+                            children: [
+                              // 네트워크 이미지
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+                                  width: 144,
+                                  height: 161,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+
+                              // 하단 그라데이션 효과
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  height: 161 * 0.2, // 높이의 5분의 1
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(8),
+                                      bottomRight: Radius.circular(8),
+                                    ),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withOpacity(0), // 투명
+                                        Colors.black.withOpacity(0.5), // 반투명
+                                        Colors.black.withOpacity(0.8), // 진한 검정
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // 좌측 하단 평점 추가
+                              Positioned(
+                                bottom: 4,
+                                left: 6,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      color: Color(0xffD90206), // 별 아이콘 색상
+                                      size: 14,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      "4.0", // 평점
+                                      style: TextStyle(
+                                        color: Color(0xffD90206),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Transform.translate(
+                                      offset: Offset(0, 1.5), // 위로 1px 이동
+                                      child: Text(
+                                        "(12)", // 리뷰 수
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '머니머니부동산',
-                                style: TextStyle(
+                              Transform.translate(
+                                offset: Offset(0, -4), // 위로 5px 이동
+                                child: Text(
+                                  '머니머니부동산',
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 17,
-                                    fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                              SizedBox(height: 8),
                               Text(
                                 '키이스케이프 | 스테이션점',
                                 style: TextStyle(
@@ -607,17 +746,19 @@ class _DateGridPageState extends State<DateGridPage> {
                                   child: Text(
                                     '강남',
                                     style: TextStyle(
-                                        color: Colors.black, fontSize: 10),
+                                        color: Colors.black,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700),
                                   ),
                                 ),
                                 SizedBox(width: 8),
                                 Icon(Icons.watch_later_outlined,
-                                    color: Colors.white, size: 19),
+                                    color: Colors.white, size: 18),
                                 SizedBox(width: 4),
                                 Text(
                                   '80분',
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 14),
+                                      color: Colors.white, fontSize: 13),
                                 ),
                               ]),
                               SizedBox(height: 10),
@@ -628,27 +769,28 @@ class _DateGridPageState extends State<DateGridPage> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: 16),
                               Row(
                                 children: [
                                   _buildRatingItem(
                                       label: '난이도',
                                       value: '5',
-                                      imagePath: 'assets/button/puzzle.png',
-                                      color: Colors.red),
-                                  SizedBox(width: 11),
+                                      imagePath: 'assets/icon/puzzle_red.png',
+                                      imageSize: 21,
+                                      color: Color(0xffD90206)),
+                                  SizedBox(width: 13),
                                   _buildRatingItem(
                                     label: '공포도',
-                                    imagePath:
-                                        'assets/button/knife_rounded.png',
+                                    imageSize: 21,
+                                    imagePath: 'assets/icon/ghost.png',
                                   ),
-                                  SizedBox(width: 10),
+                                  SizedBox(width: 12),
                                   _buildRatingItem(
-                                      label: '활동성',
-                                      imagePath:
-                                          'assets/button/shoes_rounded.png'),
+                                    label: '활동성',
+                                    imagePath: 'assets/icon/shoe.png',
+                                    imageSize: 21,
+                                  ),
                                   SizedBox(width: 9),
-                                  _buildRatingItem(label: '평점', value: '4.0'),
                                 ],
                               )
                             ],
@@ -656,19 +798,27 @@ class _DateGridPageState extends State<DateGridPage> {
                         ),
                         Container(
                           child: IconButton(
-                            alignment: Alignment(-1.0, -2.5),
+                            alignment: Alignment(-1.0, -1.65),
                             padding: const EdgeInsets.all(0),
-                            icon: const Icon(
-                              Icons.bookmark_border,
-                              color: Colors.white,
-                              size: 30,
+                            icon: Icon(
+                              !isBookmarkClicked
+                                  ? Icons.bookmark_border
+                                  : Icons.bookmark,
+                              color: !isBookmarkClicked
+                                  ? Colors.white
+                                  : Color(0xffD90206),
+                              size: 24,
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              setState(() {
+                                isBookmarkClicked = !isBookmarkClicked;
+                              });
+                            },
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 13),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -685,24 +835,25 @@ class _DateGridPageState extends State<DateGridPage> {
                             .map((time) => Container(
                                   margin: const EdgeInsets.only(right: 15),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 4),
+                                      horizontal: 6, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Color(0xff2D0000),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.red),
+                                    border:
+                                        Border.all(color: Color(0xffD90206)),
                                   ),
                                   child: Text(
                                     time,
                                     style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
-                                        fontSize: 13),
+                                        fontSize: 12),
                                   ),
                                 ))
                             .toList(),
                       ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 5),
                     Divider(color: Color(0xff363636)),
                   ],
                 ),

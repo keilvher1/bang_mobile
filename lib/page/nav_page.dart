@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/page/after_login.dart';
 import 'package:scrd/page/home_page.dart';
+import 'package:scrd/page/upload_page.dart';
 
 import '../provider/navigation_provider.dart';
 
@@ -20,7 +22,7 @@ class _HomePageState extends State<NavPage> {
   final List<Widget> _pages = [
     Center(child: Text('Search Page', style: TextStyle(color: Colors.white))),
     DateGridPage(),
-    Center(child: Text('Add Page', style: TextStyle(color: Colors.white))),
+    GroupReviewPage(),
     Center(child: Text('Saved Page', style: TextStyle(color: Colors.white))),
     AfterLogin(),
   ];
@@ -30,49 +32,57 @@ class _HomePageState extends State<NavPage> {
     final navigationProvider = Provider.of<NavigationProvider>(context);
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        toolbarHeight: 40,
-        backgroundColor: Colors.black,
-        leading: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              SizedBox(width: 29),
-              Image.asset('assets/scrd_logo.png'),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.search,
-              color: Colors.white,
-              size: 30,
-            ),
-            onPressed: () {},
-          ),
+      appBar: navigationProvider.selectedIndex != 2
+          ? AppBar(
+              toolbarHeight: 40,
+              backgroundColor: Colors.black,
+              leading: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    SizedBox(width: 29),
+                    // Image.asset('assets/icon/Logo_Bold.svg'),
+                    SvgPicture.asset(
+                      // 'assets/icon/Logo_Bold1.svg',
+                      'assets/icon/logo_border.svg',
+                      width: 28,
+                      height: 28,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                  onPressed: () {},
+                ),
 
-          // Container(
-          //   width: 30,
-          //   height: 30,
-          //   decoration: BoxDecoration(
-          //     borderRadius: BorderRadius.circular(30),
-          //     color: Colors.white,
-          //   ),
-          // ),
-          SizedBox(width: 20),
-        ],
-      ),
+                // Container(
+                //   width: 30,
+                //   height: 30,
+                //   decoration: BoxDecoration(
+                //     borderRadius: BorderRadius.circular(30),
+                //     color: Colors.white,
+                //   ),
+                // ),
+                SizedBox(width: 20),
+              ],
+            )
+          : null,
       body: _pages[navigationProvider.selectedIndex],
       bottomNavigationBar: Container(
         padding: const EdgeInsets.only(top: 8), // 상단 패딩 추가
@@ -103,7 +113,6 @@ class _HomePageState extends State<NavPage> {
               backgroundColor: Colors.grey,
               icon: Icon(
                 Icons.add_box,
-                color: Colors.grey,
                 size: 27,
               ),
               label: '',
@@ -124,7 +133,7 @@ class _HomePageState extends State<NavPage> {
             ),
           ],
           backgroundColor: Color(0xff131313),
-          selectedItemColor: Colors.red,
+          selectedItemColor: Color(0xffD90206),
           unselectedItemColor: Colors.white,
           type: BottomNavigationBarType.fixed,
         ),
