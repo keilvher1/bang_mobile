@@ -3,7 +3,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/page/after_login.dart';
+import 'package:scrd/page/find_group_page.dart';
 import 'package:scrd/page/home_page.dart';
+import 'package:scrd/page/my_saved_page.dart';
+import 'package:scrd/page/save_page.dart';
 import 'package:scrd/page/upload_page.dart';
 
 import '../provider/navigation_provider.dart';
@@ -23,7 +26,7 @@ class _HomePageState extends State<NavPage> {
     Center(child: Text('Search Page', style: TextStyle(color: Colors.white))),
     DateGridPage(),
     GroupReviewPage(),
-    Center(child: Text('Saved Page', style: TextStyle(color: Colors.white))),
+    MySavedPage(),
     AfterLogin(),
   ];
 
@@ -68,7 +71,12 @@ class _HomePageState extends State<NavPage> {
                     color: Colors.white,
                     size: 30,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => FindGroupPage()),
+                    );
+                  },
                 ),
 
                 // Container(
@@ -93,7 +101,17 @@ class _HomePageState extends State<NavPage> {
         ),
         child: BottomNavigationBar(
           currentIndex: navigationProvider.selectedIndex,
-          onTap: (index) => navigationProvider.setIndex(index),
+          onTap: (index) {
+            if (index == 2) {
+              // + 버튼 눌렀을 때 업로드 페이지 전체화면으로 push
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => GroupReviewPage()),
+              );
+            } else {
+              navigationProvider.setIndex(index);
+            }
+          },
           items: const [
             BottomNavigationBarItem(
               icon: Icon(

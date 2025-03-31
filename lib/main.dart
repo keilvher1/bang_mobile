@@ -8,6 +8,7 @@ import 'package:scrd/page/tier_page.dart';
 import 'package:scrd/provider/bottomsheet_provider.dart';
 import 'package:scrd/provider/navigation_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:scrd/provider/tag_selection_provider.dart';
 
 import 'auth/animation_page.dart';
 import 'components/infitite_scrolling_background.dart';
@@ -26,6 +27,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => NavigationProvider()),
         ChangeNotifierProvider(create: (context) => BottomSheetProvider()),
+        ChangeNotifierProvider(create: (context) => TagSelectionProvider()),
       ],
       child: const MyApp(),
     ),

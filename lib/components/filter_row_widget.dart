@@ -38,6 +38,29 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     });
   }
 
+  void _showRegionBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return RegionBottomSheet();
+      },
+    );
+  }
+
+  void showDifficultyBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DifficultyBottomSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -46,9 +69,13 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(width: 5),
-          _buildDropdownButton('지역', ['지역', '옵션1', '옵션2']),
+          GestureDetector(
+              onTap: () => _showRegionBottomSheet(context),
+              child: _buildDropdownButton('지역')),
           const SizedBox(width: 5),
-          _buildDropdownButton('난이도', ['난이도', '쉬움', '보통', '어려움']),
+          GestureDetector(
+              onTap: () => showDifficultyBottomSheet(context),
+              child: _buildDropdownButton('난이도')),
           const SizedBox(width: 5),
           _buildIconTextButton(
             '공포도',
@@ -70,7 +97,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     );
   }
 
-  Widget _buildDropdownButton(String label, List<String> options) {
+  Widget _buildDropdownButton(String label) {
     return Container(
       height: widget.height,
       padding: EdgeInsets.symmetric(
@@ -79,36 +106,22 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: IntrinsicWidth(
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: label,
-            items: options.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    color: widget.fontColor,
-                    fontSize: widget.fontSize,
-                    fontWeight: widget.fontWeight,
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {},
-            dropdownColor: Colors.black,
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-            iconSize: 16,
-            isDense: true,
-            isExpanded: false,
+      child: Row(
+        children: [
+          Text(
+            '지역',
             style: TextStyle(
               color: widget.fontColor,
               fontSize: widget.fontSize,
               fontWeight: widget.fontWeight,
             ),
           ),
-        ),
+          const Icon(
+            Icons.arrow_drop_down,
+            color: Colors.white,
+            size: 16,
+          ),
+        ],
       ),
     );
   }
@@ -171,6 +184,361 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
         iconSize: widget.iconSize,
         onPressed: () {},
         padding: EdgeInsets.zero,
+      ),
+    );
+  }
+}
+
+// 3. RegionBottomSheet 위젯
+class RegionBottomSheet extends StatefulWidget {
+  @override
+  _RegionBottomSheetState createState() => _RegionBottomSheetState();
+}
+
+class _RegionBottomSheetState extends State<RegionBottomSheet> {
+  int selectedMainIndex = 0;
+  String? selectedSubRegion;
+
+  final List<String> mainRegions = [
+    '서울',
+    '경기/인천',
+    '대전/충청',
+    '대구/경북',
+    '부산/울산',
+    '경남',
+    '광주/전라',
+    '강원',
+    '제주',
+  ];
+
+  final Map<String, List<String>> subRegions = {
+    '서울': ['강남', '건대'],
+    '경기/인천': ['건대'],
+    '대전/충청': ['홍대'],
+    '대구/경북': ['노원'],
+    '부산/울산': ['성수'],
+    '경남': ['신촌'],
+    '광주/전라': ['잠실'],
+    '강원': ['강남'],
+    '제주': ['대학로'],
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final currentSub = subRegions[mainRegions[selectedMainIndex]] ?? [];
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.65,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text('지역',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
+              IconButton(
+                icon: Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              )
+            ],
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                // Main region list
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: mainRegions.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = selectedMainIndex == index;
+                      return GestureDetector(
+                        onTap: () => setState(() => selectedMainIndex = index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.white : Colors.black,
+                            border: Border(
+                              bottom: BorderSide(
+                                width: 0.50,
+                                color: const Color(0xFF363636),
+                              ),
+                            ),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: Text(
+                              mainRegions[index],
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Color(0xffD90206)
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Sub region list
+                Expanded(
+                  flex: 2,
+                  child: ListView.builder(
+                    itemCount: currentSub.length,
+                    itemBuilder: (context, index) {
+                      final sub = currentSub[index];
+                      final isSelected = sub == selectedSubRegion;
+                      return GestureDetector(
+                        onTap: () => setState(() => selectedSubRegion = sub),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected ? Color(0xffD90206) : Colors.black,
+                            border: Border(
+                              bottom: BorderSide(
+                                width: 0.50,
+                                color: const Color(0xFF363636),
+                              ),
+                            ),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                sub,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text('12', style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap:
+                selectedSubRegion != null ? () => Navigator.pop(context) : null,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              alignment: Alignment.center,
+              color: selectedSubRegion != null
+                  ? Color(0xffD90206)
+                  : Color(0xff515151),
+              child: Text(
+                '선택 완료',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DifficultyBottomSheet extends StatefulWidget {
+  @override
+  _DifficultyBottomSheetState createState() => _DifficultyBottomSheetState();
+}
+
+class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
+  double _startDifficulty = 1;
+  double _endDifficulty = 5;
+  bool _difficultySelected = false;
+
+  final Map<int, String> difficultyDescriptions = {
+    1: '10방 미만에게 추천하는 난이도',
+    2: '10방 이상 50방 미만에게 추천하는 난이도',
+    3: '50방 이상 100방 미만에게 추천하는 난이도',
+    4: '100방 이상 200방 미만에게 추천하는 난이도',
+    5: '200방 이상에게 추천하는 난이도',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final double sliderWidth = MediaQuery.of(context).size.width - 80;
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// 제목 및 닫기 버튼
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("난이도",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              IconButton(
+                icon: Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              )
+            ],
+          ),
+
+          Divider(color: Color(0xff363636)),
+
+          /// 난이도 설명 텍스트
+          ...difficultyDescriptions.entries.map((entry) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/icon/puzzle_red.png',
+                      width: 20,
+                      color: Color(0xffD90206),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      "${entry.key}  :  ${entry.value}",
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                    )
+                  ],
+                ),
+              )),
+
+          SizedBox(height: 30),
+
+          /// 퍼즐 + 슬라이더 (Stack)
+          SizedBox(
+            height: 100, // ← Stack 높이 충분히 확보
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final sliderWidth = constraints.maxWidth - 40; // 20 padding * 2
+
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    /// RangeSlider
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          thumbColor: Colors.white, // 🔥 커서(thumb) 색상
+                          // overlayColor: Colors.white.withOpacity(0.2),
+                          // thumbShape: RoundSliderThumbShape(
+                          //   // enabledThumbRadius: 8,
+                          //   elevation: 2,
+                          // ),
+                          trackHeight: 4,
+                          activeTrackColor: Color(0xffD90206),
+                          inactiveTrackColor: Colors.white30,
+                          overlayShape:
+                              RoundSliderOverlayShape(overlayRadius: 16),
+                        ),
+                        child: RangeSlider(
+                          values: RangeValues(_startDifficulty, _endDifficulty),
+                          min: 1,
+                          max: 5,
+                          divisions: 4,
+                          labels: RangeLabels(
+                            _startDifficulty.round().toString(),
+                            _endDifficulty.round().toString(),
+                          ),
+                          onChanged: (values) {
+                            setState(() {
+                              _startDifficulty = values.start.roundToDouble();
+                              _endDifficulty = values.end.roundToDouble();
+                              _difficultySelected = true;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+
+                    /// 시작 퍼즐 아이콘 + 숫자
+                    Positioned(
+                      left: 30 + (_startDifficulty - 1) / 4 * sliderWidth - 10,
+                      bottom: 60,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/icon/puzzle_red.png',
+                            width: 24,
+                            color: Color(0xffD90206),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            "${_startDifficulty.round()}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    /// 끝 퍼즐 아이콘 + 숫자
+                    Positioned(
+                      left: 0 + (_endDifficulty - 1) / 4 * sliderWidth - 10,
+                      bottom: 60,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/icon/puzzle_red.png',
+                            width: 24,
+                            color: Color(0xffD90206),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            "${_endDifficulty.round()}",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 50),
+
+          /// 완료 버튼
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
+                padding: EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed:
+                  _difficultySelected ? () => Navigator.pop(context) : null,
+              child: Text("선택 완료",
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
       ),
     );
   }
