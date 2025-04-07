@@ -6,7 +6,9 @@ import 'package:scrd/page/after_login.dart';
 import 'package:scrd/page/find_group_page.dart';
 import 'package:scrd/page/home_page.dart';
 import 'package:scrd/page/my_saved_page.dart';
+import 'package:scrd/page/notification.dart';
 import 'package:scrd/page/save_page.dart';
+import 'package:scrd/page/search_theme.dart';
 import 'package:scrd/page/upload_page.dart';
 
 import '../provider/navigation_provider.dart';
@@ -23,10 +25,11 @@ class _HomePageState extends State<NavPage> {
       CarouselSliderController();
 
   final List<Widget> _pages = [
-    Center(child: Text('Search Page', style: TextStyle(color: Colors.white))),
     DateGridPage(),
+    FindGroupPage(),
     GroupReviewPage(),
-    MySavedPage(),
+    // MySavedPage(),
+    NotificationPage(),
     AfterLogin(),
   ];
 
@@ -35,7 +38,9 @@ class _HomePageState extends State<NavPage> {
     final navigationProvider = Provider.of<NavigationProvider>(context);
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: navigationProvider.selectedIndex != 2
+      appBar: navigationProvider.selectedIndex != 1 &&
+              navigationProvider.selectedIndex != 2 &&
+              navigationProvider.selectedIndex != 3
           ? AppBar(
               toolbarHeight: 40,
               backgroundColor: Colors.black,
@@ -57,14 +62,19 @@ class _HomePageState extends State<NavPage> {
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_none_rounded,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  onPressed: () {},
-                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.notifications_none_rounded,
+                //     color: Colors.white,
+                //     size: 28,
+                //   ),
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (_) => NotificationPage()),
+                //     );
+                //   },
+                // ),
                 IconButton(
                   icon: const Icon(
                     Icons.search,
@@ -74,7 +84,7 @@ class _HomePageState extends State<NavPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => FindGroupPage()),
+                      MaterialPageRoute(builder: (_) => SearchThemePage()),
                     );
                   },
                 ),

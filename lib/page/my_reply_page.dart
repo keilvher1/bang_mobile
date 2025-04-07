@@ -28,22 +28,37 @@ class _MyReviewPageState extends State<MyReviewPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          '내가 쓴 리뷰',
-          style: TextStyle(
-            color: Color(0xffD90206),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                )),
+            const Text(
+              '내가 쓴 리뷰',
+              style: TextStyle(
+                color: Color(0xffD90206),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
+        backgroundColor: Colors.black,
         centerTitle: false,
       ),
       body: ListView.builder(
         itemCount: 2,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -57,13 +72,13 @@ class _MyReviewPageState extends State<MyReviewPage> {
                           children: [
                             CircleAvatar(
                               backgroundColor: Colors.white, // 배경색 설정
-                              radius: 20, // 아바타 크기 설정
+                              radius: 45, // 아바타 크기 설정
                               child: ClipOval(
-                                child: Image.asset(
-                                  'assets/needle.png',
-                                  width: 25, // 원하는 크기로 조정
-                                  height: 25,
-                                  fit: BoxFit.contain, // 원 안에 이미지 맞추기
+                                child: Image.network(
+                                  'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+                                  width: 144,
+                                  height: 161,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ),
@@ -75,34 +90,90 @@ class _MyReviewPageState extends State<MyReviewPage> {
                               children: [
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '60분 35초 / 75분',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xffC9C9C9),
-                                        fontWeight: FontWeight.bold,
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width -
+                                          140,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '머니머니부동산',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // TODO: 액션
+                                            },
+                                            child: Icon(
+                                              Icons.more_vert,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 2), // 간격 추가
                                     Row(
                                       children: [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Color(0xFFB9B9B9),
+                                          size: 14,
+                                        ),
                                         Text(
-                                          '성공 / 힌트 3개 ',
+                                          '키이스케이프 | 스테이션점',
                                           style: TextStyle(
+                                            color: const Color(0xFFB9B9B9),
                                             fontSize: 12,
-                                            color: Color(0xffC9C9C9),
-                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
                                           ),
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _buildRatingItem(
+                                          label: '평점',
+                                          value: '4.0',
+                                          fontSize: 14,
+                                          color: Color(0xffD90206),
                                         ),
-                                        Text(
-                                          '• 3개월 전', // 중간 점(•) 추가
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xffC9C9C9),
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                        SizedBox(width: 14),
+                                        _buildRatingItem(
+                                            label: '난이도',
+                                            value: '5',
+                                            imagePath:
+                                                'assets/icon/puzzle_red.png',
+                                            imageSize: 23,
+                                            color: Color(0xffD90206)),
+                                        SizedBox(width: 14),
+                                        _buildRatingItem(
+                                            label: '공포도',
+                                            imagePath: 'assets/icon/ghost.png',
+                                            imageSize: 23),
+                                        SizedBox(width: 14),
+                                        _buildRatingItem(
+                                            label: '활동성',
+                                            imagePath:
+                                                'assets/icon/shoe_in.png',
+                                            imageSize: 23),
                                       ],
                                     ),
                                   ],
@@ -113,50 +184,14 @@ class _MyReviewPageState extends State<MyReviewPage> {
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.more_vert,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      onPressed: () {},
-                    ),
                   ],
                 ),
-                SizedBox(height: 13),
+                SizedBox(height: 5),
                 Padding(
                     padding: const EdgeInsets.only(left: 2),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildRatingItem(
-                              label: '평점',
-                              value: '4.0',
-                              fontSize: 14,
-                              color: Color(0xffD90206),
-                            ),
-                            SizedBox(width: 14),
-                            _buildRatingItem(
-                                label: '난이도',
-                                value: '5',
-                                imagePath: 'assets/icon/puzzle_red.png',
-                                imageSize: 23,
-                                color: Color(0xffD90206)),
-                            SizedBox(width: 14),
-                            _buildRatingItem(
-                                label: '공포도',
-                                imagePath: 'assets/icon/ghost.png',
-                                imageSize: 23),
-                            SizedBox(width: 14),
-                            _buildRatingItem(
-                                label: '활동성',
-                                imagePath: 'assets/icon/shoe_in.png',
-                                imageSize: 23),
-                          ],
-                        ),
                         const SizedBox(height: 15),
                         hashtag(tags, _addTag, _removeTag),
                         const SizedBox(height: 15),
@@ -201,7 +236,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
         const SizedBox(height: 4),
         if (imagePath != null)
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(),
               Image.asset(
@@ -224,7 +259,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
           )
         else
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 value ?? '',

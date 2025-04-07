@@ -152,7 +152,7 @@ class _DateGridPageState extends State<DateGridPage> {
                                   color: provider.selectedTabIndex == 0
                                       ? Color(0xffD90206)
                                       : Colors.white,
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -200,14 +200,7 @@ class _DateGridPageState extends State<DateGridPage> {
                           ? _buildDetailContent()
                           : _buildReviewContent(),
                     ),
-                    provider.selectedTabIndex == 1
-                        ? SizedBox()
-                        // Center(
-                        //         child: Text(
-                        //         '전체 리뷰',
-                        //         style: TextStyle(color: Color(0xffD90206)),
-                        //       ))
-                        : SizedBox(),
+                    provider.selectedTabIndex == 1 ? SizedBox() : SizedBox(),
                     const SizedBox(height: 30),
                     _buildActionButtons()
                   ],
@@ -551,8 +544,8 @@ class _DateGridPageState extends State<DateGridPage> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5, horizontal: 15),
+                          width: 47,
+                          height: 55,
                           margin: const EdgeInsets.only(left: 1),
                           decoration: BoxDecoration(
                             color: isSelected
@@ -564,6 +557,8 @@ class _DateGridPageState extends State<DateGridPage> {
                                 : Border.all(color: Colors.transparent),
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 DateFormat('d').format(date),
@@ -601,14 +596,13 @@ class _DateGridPageState extends State<DateGridPage> {
                 // ),
               ],
             ),
-            SizedBox(height: 21),
+            SizedBox(height: 15),
             FilterRowWidget(
               height: 29.0,
               horizontalPadding: 10.0,
               iconSize: 12.0,
               fontSize: 13.0,
             ),
-            SizedBox(height: 5),
           ],
         ),
         toolbarHeight: 130,

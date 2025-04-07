@@ -77,7 +77,6 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
                     Icons.arrow_back,
                     color: Colors.white,
                   )),
-              SizedBox(width: 10),
               GestureDetector(
                 onTap: () => setState(() => isRecruitment = true),
                 child: Text(
@@ -583,11 +582,32 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
     int selectedMinute = selectedTime?.minute ?? 0;
 
     return Container(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.only(bottom: 10),
       color: const Color(0xFF121212),
+      height: 180,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 55,
+              ),
+              Text(
+                '※ 스크롤을 올리거나 내려서 시간을 조정하세요.',
+                style: TextStyle(
+                  color: const Color(0xFFB9B9B9),
+                  fontSize: 14,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 15,
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center, // ✅ 세로 정렬 중앙
@@ -662,7 +682,7 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
                       child: const Text("AM",
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 15,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500)),
                     ),
                   ),
@@ -690,7 +710,7 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
                       child: const Text("PM",
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 15,
+                              fontSize: 12,
                               fontWeight: FontWeight.w500)),
                     ),
                   ),
@@ -700,25 +720,27 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
           ),
           const Padding(
             padding: EdgeInsets.only(
-              left: 102.0,
+              left: 105.0,
             ), // top: 4 → 간격 좁게
             child: Row(
               // mainAxisAlignment: MainAxisAlignment.start,
               // crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(right: 88),
+                  padding: EdgeInsets.only(right: 97),
                   child: Text("Hour",
                       style: TextStyle(
-                        color: Colors.white,
-                        height: -0.8,
-                      )),
+                          fontSize: 12,
+                          color: Colors.white,
+                          height: 0.4,
+                          fontWeight: FontWeight.w300)),
                 ),
                 Text("Min",
                     style: TextStyle(
-                      color: Colors.white,
-                      height: -0.8,
-                    )),
+                        fontSize: 12,
+                        color: Colors.white,
+                        height: 0.4,
+                        fontWeight: FontWeight.w300)),
               ],
             ),
           ),

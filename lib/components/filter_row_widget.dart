@@ -26,6 +26,8 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
   bool _isHorrorSelected = false;
   bool _isActivitySelected = false;
 
+  String? _selectedRegion;
+  String? _selectedDifficulty;
   void _toggleHorror() {
     setState(() {
       _isHorrorSelected = !_isHorrorSelected;
@@ -38,89 +40,124 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     });
   }
 
-  void _showRegionBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showRegionBottomSheet(BuildContext context) async {
+    final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.black,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return RegionBottomSheet();
-      },
+      builder: (context) => RegionBottomSheet(),
     );
+
+    if (result != null) {
+      setState(() {
+        _selectedRegion = result;
+      });
+    }
   }
 
-  void showDifficultyBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showDifficultyBottomSheet(BuildContext context) async {
+    final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => DifficultyBottomSheet(),
     );
+
+    if (result != null) {
+      setState(() {
+        _selectedDifficulty = result;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(width: 5),
-          GestureDetector(
-              onTap: () => _showRegionBottomSheet(context),
-              child: _buildDropdownButton('지역')),
-          const SizedBox(width: 5),
-          GestureDetector(
-              onTap: () => showDifficultyBottomSheet(context),
-              child: _buildDropdownButton('난이도')),
-          const SizedBox(width: 5),
-          _buildIconTextButton(
-            '공포도',
-            'assets/icon/ghost_no.png',
-            _isHorrorSelected,
-            _toggleHorror,
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(width: 5),
+                GestureDetector(
+                    onTap: () => _showRegionBottomSheet(context),
+                    child: _buildDropdownButton('전국', _selectedRegion, 0)),
+                const SizedBox(width: 5),
+                GestureDetector(
+                    onTap: () => _showDifficultyBottomSheet(context),
+                    child: _buildDropdownButton('난이도', _selectedDifficulty, 1)),
+                const SizedBox(width: 5),
+                _buildIconTextButton(
+                  '공포도',
+                  'assets/icon/ghost_no.png',
+                  _isHorrorSelected,
+                  _toggleHorror,
+                ),
+                const SizedBox(width: 5),
+                _buildIconTextButton(
+                  '활동성',
+                  'assets/icon/shoe_no.png',
+                  _isActivitySelected,
+                  _toggleActivity,
+                ),
+                const SizedBox(width: 10),
+                // Icon(
+                //   Icons.menu,
+                //   size: 30,
+                //   color: Colors.white,
+                // ),
+                _buildCircleIconButton('assets/button/filter.png')
+              ],
+            ),
           ),
-          const SizedBox(width: 5),
-          _buildIconTextButton(
-            '활동성',
-            'assets/icon/shoe_no.png',
-            _isActivitySelected,
-            _toggleActivity,
-          ),
-          const SizedBox(width: 14),
-          _buildCircleIconButton('assets/button/filter.png'),
-        ],
-      ),
+        ),
+        // _buildCircleIconButton('assets/button/filter.png'),
+      ],
     );
   }
 
-  Widget _buildDropdownButton(String label) {
+  Widget _buildDropdownButton(
+      String defaultLabel, String? selectedValue, int num) {
+    debugPrint('selected :  $selectedValue');
+    final isSelected = selectedValue != null &&
+        selectedValue != '전체' &&
+        selectedValue != '난이도';
     return Container(
       height: widget.height,
-      padding: EdgeInsets.symmetric(
-          horizontal: widget.horizontalPadding, vertical: 2),
+      padding: EdgeInsets.only(left: 7, right: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
+        color: isSelected ? Colors.white : Colors.transparent,
+        border: Border.all(color: isSelected ? Colors.black : Colors.white),
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          num == 1
+              ? Image.asset(
+                  'assets/icon/puzzle_red.png',
+                  width: 16,
+                  color: isSelected ? Colors.black : Colors.white,
+                )
+              : SizedBox.shrink(),
+          const SizedBox(width: 3),
           Text(
-            '지역',
+            selectedValue ?? defaultLabel,
             style: TextStyle(
-              color: widget.fontColor,
+              color: isSelected ? Colors.black : Colors.white,
               fontSize: widget.fontSize,
               fontWeight: widget.fontWeight,
             ),
           ),
-          const Icon(
-            Icons.arrow_drop_down,
-            color: Colors.white,
-            size: 16,
-          ),
+          num == 0
+              ? Icon(Icons.arrow_drop_down,
+                  color: isSelected ? Colors.black : Colors.white, size: 16)
+              : SizedBox.shrink(),
         ],
       ),
     );
@@ -169,7 +206,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
   }
 
   Widget _buildCircleIconButton(String iconPath) {
-    return Container(
+    return SizedBox(
       width: 27,
       height: 27,
       // decoration: BoxDecoration(
@@ -200,6 +237,7 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
   String? selectedSubRegion;
 
   final List<String> mainRegions = [
+    '전국',
     '서울',
     '경기/인천',
     '대전/충청',
@@ -212,34 +250,44 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
   ];
 
   final Map<String, List<String>> subRegions = {
-    '서울': ['강남', '건대'],
-    '경기/인천': ['건대'],
-    '대전/충청': ['홍대'],
-    '대구/경북': ['노원'],
-    '부산/울산': ['성수'],
-    '경남': ['신촌'],
-    '광주/전라': ['잠실'],
-    '강원': ['강남'],
-    '제주': ['대학로'],
+    '전국': ['전체'],
+    '서울': ['전체', '강남', '건대'],
+    '경기/인천': ['전체', '건대'],
+    '대전/충청': ['전체', '홍대'],
+    '대구/경북': ['전체', '노원'],
+    '부산/울산': ['전체', '성수'],
+    '경남': ['전체', '신촌'],
+    '광주/전라': ['전체', '잠실'],
+    '강원': ['전체', '강남'],
+    '제주': ['전체', '대학로'],
   };
 
   @override
   Widget build(BuildContext context) {
     final currentSub = subRegions[mainRegions[selectedMainIndex]] ?? [];
+    debugPrint('$selectedMainIndex');
     return Container(
-      height: MediaQuery.of(context).size.height * 0.65,
+      height: MediaQuery.of(context).size.height * 0.63,
+      // height: MediaQuery.of(context).size.width - 80,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          SizedBox(
+            height: 20,
+          ),
+
+          /// 제목 및 닫기 버튼
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   SizedBox(
-                    width: 20,
+                    width: 12,
                   ),
-                  Text('지역',
+                  Text("지역",
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -247,7 +295,9 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                 ],
               ),
               IconButton(
+                padding: EdgeInsets.only(bottom: 20, right: 25),
                 icon: Icon(Icons.close, color: Colors.white),
+                alignment: Alignment(-1, 1),
                 onPressed: () => Navigator.pop(context),
               )
             ],
@@ -290,7 +340,6 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                     },
                   ),
                 ),
-
                 // Sub region list
                 Expanded(
                   flex: 2,
@@ -336,8 +385,15 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
             ),
           ),
           GestureDetector(
-            onTap:
-                selectedSubRegion != null ? () => Navigator.pop(context) : null,
+            onTap: selectedSubRegion != null
+                ? () => selectedMainIndex > 0
+                    ? Navigator.pop(
+                        context,
+                        selectedSubRegion != '전체'
+                            ? '$selectedSubRegion'
+                            : '${mainRegions[selectedMainIndex]} $selectedSubRegion')
+                    : Navigator.pop(context, '전체')
+                : null,
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -345,13 +401,11 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
               color: selectedSubRegion != null
                   ? Color(0xffD90206)
                   : Color(0xff515151),
-              child: Text(
-                '선택 완료',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+              child: Text('선택 완료',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-          ),
+          )
         ],
       ),
     );
@@ -378,10 +432,10 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final double sliderWidth = MediaQuery.of(context).size.width - 80;
+    // final double sliderWidth = MediaQuery.of(context).size.width - 80;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.only(top: 20),
       decoration: BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -393,26 +447,44 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
           /// 제목 및 닫기 버튼
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("난이도",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  SizedBox(
+                    width: 12,
+                  ),
+                  Text("난이도",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
               IconButton(
+                padding: EdgeInsets.only(bottom: 20, right: 25),
                 icon: Icon(Icons.close, color: Colors.white),
+                alignment: Alignment(-1, 1),
                 onPressed: () => Navigator.pop(context),
               )
             ],
           ),
 
           Divider(color: Color(0xff363636)),
+          SizedBox(
+            height: 25,
+          ),
 
           /// 난이도 설명 텍스트
           ...difficultyDescriptions.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 6,
+                ),
                 child: Row(
                   children: [
+                    SizedBox(
+                      width: 50,
+                    ),
                     Image.asset(
                       'assets/icon/puzzle_red.png',
                       width: 20,
@@ -453,24 +525,25 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                           trackHeight: 4,
                           activeTrackColor: Color(0xffD90206),
                           inactiveTrackColor: Colors.white30,
-                          overlayShape:
-                              RoundSliderOverlayShape(overlayRadius: 16),
+                          // overlayShape:
+                          //     RoundSliderOverlayShape(overlayRadius: 16),
                         ),
                         child: RangeSlider(
                           values: RangeValues(_startDifficulty, _endDifficulty),
                           min: 1,
                           max: 5,
                           divisions: 4,
-                          labels: RangeLabels(
-                            _startDifficulty.round().toString(),
-                            _endDifficulty.round().toString(),
-                          ),
+                          // labels: RangeLabels(
+                          //   _startDifficulty.round().toString(),
+                          //   _endDifficulty.round().toString(),
+                          // ),
                           onChanged: (values) {
                             setState(() {
                               _startDifficulty = values.start.roundToDouble();
                               _endDifficulty = values.end.roundToDouble();
                               _difficultySelected = true;
                             });
+                            debugPrint('selected : $_difficultySelected');
                           },
                         ),
                       ),
@@ -520,24 +593,46 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
               },
             ),
           ),
-          SizedBox(height: 50),
+          SizedBox(height: 30),
 
           /// 완료 버튼
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
-                padding: EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed:
-                  _difficultySelected ? () => Navigator.pop(context) : null,
-              child: Text("선택 완료",
+          // Container(
+          //   width: double.infinity,
+          //   padding: EdgeInsets.symmetric(vertical: 16),
+          //   alignment: Alignment.center,
+          //   child: ElevatedButton(
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor:
+          //           _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
+          //     ),
+          //     onPressed:
+          //         _difficultySelected ? () => Navigator.pop(context) : null,
+          //     child: Text("선택 완료",
+          //         style: TextStyle(
+          //             color: Colors.white, fontWeight: FontWeight.bold)),
+          //   ),
+          // ),
+          GestureDetector(
+            onTap: _difficultySelected
+                ? () {
+                    String range =
+                        "${_startDifficulty.round()}~${_endDifficulty.round()}";
+                    range == '1~5'
+                        ? Navigator.pop(context, '난이도')
+                        : Navigator.pop(context, range);
+                  }
+                : null,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              alignment: Alignment.center,
+              color:
+                  _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
+              child: Text('선택 완료',
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-          ),
+          )
         ],
       ),
     );

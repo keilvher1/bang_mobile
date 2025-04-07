@@ -552,8 +552,8 @@ class _MySavedPageState extends State<MySavedPage> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5, horizontal: 15),
+                          width: 47,
+                          height: 55,
                           margin: const EdgeInsets.only(left: 1),
                           decoration: BoxDecoration(
                             color: isSelected
@@ -565,6 +565,8 @@ class _MySavedPageState extends State<MySavedPage> {
                                 : Border.all(color: Colors.transparent),
                           ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 DateFormat('d').format(date),
@@ -602,14 +604,13 @@ class _MySavedPageState extends State<MySavedPage> {
                 // ),
               ],
             ),
-            SizedBox(height: 21),
-            FilterRowWidget(
-              height: 29.0,
-              horizontalPadding: 10.0,
-              iconSize: 12.0,
-              fontSize: 13.0,
-            ),
-            SizedBox(height: 5),
+            SizedBox(height: 15),
+            // FilterRowWidget(
+            //   height: 29.0,
+            //   horizontalPadding: 10.0,
+            //   iconSize: 12.0,
+            //   fontSize: 13.0,
+            // ),
           ],
         ),
         toolbarHeight: 130,
