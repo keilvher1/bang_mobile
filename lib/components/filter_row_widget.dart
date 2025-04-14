@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../provider/filter_provider.dart';
+import '../provider/filter_theme_provider.dart';
+import '../provider/theme_provider.dart';
 
 class FilterRowWidget extends StatefulWidget {
   final double height;
@@ -28,16 +33,28 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
 
   String? _selectedRegion;
   String? _selectedDifficulty;
-  void _toggleHorror() {
+  void _toggleHorror() async {
     setState(() {
       _isHorrorSelected = !_isHorrorSelected;
     });
+
+    final filterProvider = Provider.of<FilterProvider>(context, listen: false);
+    filterProvider.setHorror(_isHorrorSelected ? 1 : 0); // 🔥 여기 추가
+    final filterThemeProvider =
+        Provider.of<FilterThemeProvider>(context, listen: false);
+    await filterThemeProvider.fetchFilteredThemes(filterProvider);
   }
 
-  void _toggleActivity() {
+  void _toggleActivity() async {
     setState(() {
       _isActivitySelected = !_isActivitySelected;
     });
+
+    final filterProvider = Provider.of<FilterProvider>(context, listen: false);
+    filterProvider.setActivity(_isActivitySelected ? 1 : 0); // 🔥 여기 추가
+    final filterThemeProvider =
+        Provider.of<FilterThemeProvider>(context, listen: false);
+    await filterThemeProvider.fetchFilteredThemes(filterProvider);
   }
 
   void _showRegionBottomSheet(BuildContext context) async {
@@ -85,7 +102,9 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
               children: [
                 const SizedBox(width: 5),
                 GestureDetector(
-                    onTap: () => _showRegionBottomSheet(context),
+                    onTap: () {
+                      _showRegionBottomSheet(context);
+                    },
                     child: _buildDropdownButton('전국', _selectedRegion, 0)),
                 const SizedBox(width: 5),
                 GestureDetector(
@@ -111,7 +130,21 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
                 //   size: 30,
                 //   color: Colors.white,
                 // ),
-                _buildCircleIconButton('assets/button/filter.png')
+                GestureDetector(
+                    onTap: () async {
+                      final filterProvider =
+                          Provider.of<FilterProvider>(context, listen: false);
+                      final filterThemeProvider =
+                          Provider.of<FilterThemeProvider>(context,
+                              listen: false);
+                      debugPrint(
+                          'FilterProvider: ${filterProvider.horror}, ${filterProvider.activity}, ${filterProvider.region}, ${filterProvider.levelMin}, ${filterProvider.levelMax}');
+                      await filterThemeProvider
+                          .fetchFilteredThemes(filterProvider);
+                      debugPrint(
+                          'Filtered themes: ${filterThemeProvider.filteredThemes}');
+                    },
+                    child: _buildCircleIconButton('assets/button/filter.png'))
               ],
             ),
           ),
@@ -205,21 +238,17 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     );
   }
 
-  Widget _buildCircleIconButton(String iconPath) {
+  Widget _buildCircleIconButton(String iconPath, {VoidCallback? onTap}) {
     return SizedBox(
       width: 27,
       height: 27,
-      // decoration: BoxDecoration(
-      //   color: Colors.grey[800],
-      //   shape: BoxShape.circle,
-      // ),
       child: IconButton(
         icon: Image.asset(
           iconPath,
           fit: BoxFit.contain,
         ),
         iconSize: widget.iconSize,
-        onPressed: () {},
+        onPressed: onTap, // 👉 onTap을 여기로 넘겨줌
         padding: EdgeInsets.zero,
       ),
     );
@@ -384,15 +413,27 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
               ],
             ),
           ),
+          // ✅ 지역 선택 완료 버튼
+          // ✅ 지역 선택 완료 버튼
           GestureDetector(
             onTap: selectedSubRegion != null
-                ? () => selectedMainIndex > 0
-                    ? Navigator.pop(
-                        context,
-                        selectedSubRegion != '전체'
+                ? () async {
+                    final region = selectedMainIndex > 0
+                        ? (selectedSubRegion != '전체'
                             ? '$selectedSubRegion'
                             : '${mainRegions[selectedMainIndex]} $selectedSubRegion')
-                    : Navigator.pop(context, '전체')
+                        : '전체';
+
+                    final filterProvider =
+                        Provider.of<FilterProvider>(context, listen: false);
+                    filterProvider.setRegion(region == '전체' ? null : region);
+                    final filterThemeProvider =
+                        Provider.of<FilterThemeProvider>(context,
+                            listen: false);
+                    await filterThemeProvider
+                        .fetchFilteredThemes(filterProvider);
+                    Navigator.pop(context, region); // 닫기만 해도 됨 (적용은 오른쪽 버튼에서)
+                  }
                 : null,
             child: Container(
               width: double.infinity,
@@ -405,7 +446,7 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -612,14 +653,30 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
           //             color: Colors.white, fontWeight: FontWeight.bold)),
           //   ),
           // ),
+          // ✅ 난이도 선택 완료 버튼
+          // ✅ 난이도 선택 완료 버튼
           GestureDetector(
             onTap: _difficultySelected
-                ? () {
-                    String range =
-                        "${_startDifficulty.round()}~${_endDifficulty.round()}";
-                    range == '1~5'
-                        ? Navigator.pop(context, '난이도')
-                        : Navigator.pop(context, range);
+                ? () async {
+                    final minLevel = _startDifficulty;
+                    final maxLevel = _endDifficulty;
+
+                    final filterProvider =
+                        Provider.of<FilterProvider>(context, listen: false);
+
+                    if (minLevel == 1 && maxLevel == 5) {
+                      filterProvider.setLevel(null, null);
+                      Navigator.pop(context, '난이도'); // 🎯 난이도 초기화
+                    } else {
+                      final filterThemeProvider =
+                          Provider.of<FilterThemeProvider>(context,
+                              listen: false);
+                      await filterThemeProvider
+                          .fetchFilteredThemes(filterProvider);
+                      filterProvider.setLevel(minLevel, maxLevel);
+                      Navigator.pop(context,
+                          '${minLevel.round()} ~ ${maxLevel.round()}'); // 🎯 난이도 범위 넘긴다
+                    }
                   }
                 : null,
             child: Container(
@@ -632,7 +689,7 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-          )
+          ),
         ],
       ),
     );

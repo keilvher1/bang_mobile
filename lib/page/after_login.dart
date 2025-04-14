@@ -3,12 +3,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/page/home_page.dart';
 import 'package:scrd/page/main_page.dart';
+import 'package:scrd/page/my_saved_page.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:scrd/page/save_page.dart';
 import 'package:scrd/page/tier_page.dart';
 import 'package:scrd/provider/navigation_provider.dart';
 
 import '../auth/login.dart';
+import 'my_reply_page.dart';
 
 class AfterLogin extends StatefulWidget {
   const AfterLogin({Key? key}) : super(key: key);
@@ -70,34 +72,30 @@ class _AfterLoginState extends State<AfterLogin> {
                 const SizedBox(height: 40),
 
                 // 첫 번째 타원형 영역: GIF + REVIEW / RECORD / MY THEME
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NavPage()),
-                    );
-                  },
-                  child: _buildOvalMenuWithGif(
-                    gifAsset: 'assets/video1.gif',
-                    menuItems: [
-                      {
-                        "REVIEW (52)": () {
-                          debugPrint("REVIEW 클릭됨");
-                          Provider.of<NavigationProvider>(context,
-                                  listen: false)
-                              .setIndex(1);
-                        }
-                      },
-                      {
-                        "MY THEME": () {
-                          debugPrint("MY THEME 클릭됨");
-                          Provider.of<NavigationProvider>(context,
-                                  listen: false)
-                              .setIndex(3);
-                        }
-                      },
-                    ],
-                  ),
+                _buildOvalMenuWithGif(
+                  gifAsset: 'assets/video1.gif',
+                  menuItems: [
+                    {
+                      "REVIEW (52)": () {
+                        debugPrint("REVIEW 클릭됨");
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MyReviewPage(),
+                          ),
+                        );
+                      }
+                    },
+                    {
+                      "MY THEME": () {
+                        debugPrint("MY THEME 클릭됨");
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const MySavedPage(),
+                          ),
+                        );
+                      }
+                    },
+                  ],
                 ),
                 const SizedBox(height: 24),
 

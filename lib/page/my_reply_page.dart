@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../components/buttons.dart';
+import '../provider/my_review_provider.dart';
 
 class MyReviewPage extends StatefulWidget {
   const MyReviewPage({Key? key}) : super(key: key);
@@ -10,6 +12,17 @@ class MyReviewPage extends StatefulWidget {
 }
 
 class _MyReviewPageState extends State<MyReviewPage> {
+  final String userId = "1"; // ★ 여기에 로그인한 사용자의 userId 넣으면 돼!
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      Provider.of<MyReviewProvider>(context, listen: false)
+          .fetchMyReviews(userId);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     List<String> tags = ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"];
@@ -53,127 +66,160 @@ class _MyReviewPageState extends State<MyReviewPage> {
         backgroundColor: Colors.black,
         centerTitle: false,
       ),
-      body: ListView.builder(
-        itemCount: 2,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Consumer<MyReviewProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.myReviews.isEmpty) {
+            return const Center(
+                child: Text('아직 작성한 리뷰가 없습니다.',
+                    style: TextStyle(color: Colors.white70)));
+          }
+          return ListView.builder(
+            itemCount: provider.myReviews.length,
+            itemBuilder: (context, index) {
+              final review = provider.myReviews[index];
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.white, // 배경색 설정
-                              radius: 45, // 아바타 크기 설정
-                              child: ClipOval(
-                                child: Image.network(
-                                  'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
-                                  width: 144,
-                                  height: 161,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              mainAxisSize:
-                                  MainAxisSize.max, // Row가 전체 너비를 차지하도록 설정
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                CircleAvatar(
+                                  backgroundColor: Colors.white, // 배경색 설정
+                                  radius: 45, // 아바타 크기 설정
+                                  child: ClipOval(
+                                    // child: Image.network(
+                                    //   'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+                                    //   width: 144,
+                                    //   height: 161,
+                                    //   fit: BoxFit.cover,
+                                    // ),
+                                    child: Image.asset(
+                                      'assets/level/level${review.userTier}.png',
+                                      width: 144,
+                                      height: 161,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisSize:
+                                      MainAxisSize.max, // Row가 전체 너비를 차지하도록 설정
                                   children: [
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width -
-                                          140,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '머니머니부동산',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () {
-                                              // TODO: 액션
-                                            },
-                                            child: Icon(
-                                              Icons.more_vert,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2), // 간격 추가
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.location_on,
-                                          color: Color(0xFFB9B9B9),
-                                          size: 14,
-                                        ),
-                                        Text(
-                                          '키이스케이프 | 스테이션점',
-                                          style: TextStyle(
-                                            color: const Color(0xFFB9B9B9),
-                                            fontSize: 12,
-                                            fontFamily: 'Inter',
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Row(
+                                    Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
                                       children: [
-                                        _buildRatingItem(
-                                          label: '평점',
-                                          value: '4.0',
-                                          fontSize: 14,
-                                          color: Color(0xffD90206),
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width -
+                                              140,
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              SizedBox(
+                                                width: 200,
+                                                child: Text(
+                                                  review.text,
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.w700,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  // TODO: 액션
+                                                },
+                                                child: Icon(
+                                                  Icons.more_vert,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        SizedBox(width: 14),
-                                        _buildRatingItem(
-                                            label: '난이도',
-                                            value: '5',
-                                            imagePath:
-                                                'assets/icon/puzzle_red.png',
-                                            imageSize: 23,
-                                            color: Color(0xffD90206)),
-                                        SizedBox(width: 14),
-                                        _buildRatingItem(
-                                            label: '공포도',
-                                            imagePath: 'assets/icon/ghost.png',
-                                            imageSize: 23),
-                                        SizedBox(width: 14),
-                                        _buildRatingItem(
-                                            label: '활동성',
-                                            imagePath:
-                                                'assets/icon/shoe_in.png',
-                                            imageSize: 23),
+                                        const SizedBox(height: 2), // 간격 추가
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              color: Color(0xFFB9B9B9),
+                                              size: 14,
+                                            ),
+                                            Text(
+                                              '키이스케이프 | 스테이션점',
+                                              style: TextStyle(
+                                                color: const Color(0xFFB9B9B9),
+                                                fontSize: 12,
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildRatingItem(
+                                              label: '평점',
+                                              value: review.stars.toString(),
+                                              fontSize: 14,
+                                              color: Color(0xffD90206),
+                                            ),
+                                            SizedBox(width: 14),
+                                            _buildRatingItem(
+                                                label: '난이도',
+                                                value: '-1',
+                                                imagePath:
+                                                    'assets/icon/puzzle_red.png',
+                                                imageSize: 23,
+                                                color: Color(0xffD90206)),
+                                            SizedBox(width: 14),
+                                            _buildRatingItem(
+                                                label: '공포도',
+                                                imagePath: review.horror == 1
+                                                    ? 'assets/icon/ghost.png'
+                                                    : 'assets/icon/ghost_in.png',
+                                                imageSize: 23),
+                                            SizedBox(width: 14),
+                                            _buildRatingItem(
+                                                label: '활동성',
+                                                imagePath: review.activity == 1
+                                                    ? 'assets/icon/shoe.png'
+                                                    : 'assets/icon/shoe_in.png',
+                                                imageSize: 23),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -184,29 +230,30 @@ class _MyReviewPageState extends State<MyReviewPage> {
                         ),
                       ],
                     ),
+                    SizedBox(height: 5),
+                    Padding(
+                        padding: const EdgeInsets.only(left: 2),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 15),
+                            hashtag(tags, _addTag, _removeTag),
+                            const SizedBox(height: 15),
+                            const Text(
+                              '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
+                              style: TextStyle(
+                                  color: Colors.white70, fontSize: 13),
+                            ),
+                          ],
+                        )),
+                    SizedBox(
+                      height: 12,
+                    ),
+                    const Divider(color: Color(0xff363636)),
                   ],
                 ),
-                SizedBox(height: 5),
-                Padding(
-                    padding: const EdgeInsets.only(left: 2),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 15),
-                        hashtag(tags, _addTag, _removeTag),
-                        const SizedBox(height: 15),
-                        const Text(
-                          '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
-                          style: TextStyle(color: Colors.white70, fontSize: 13),
-                        ),
-                      ],
-                    )),
-                SizedBox(
-                  height: 12,
-                ),
-                const Divider(color: Color(0xff363636)),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

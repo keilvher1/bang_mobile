@@ -6,9 +6,15 @@ import 'package:scrd/auth/login.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:scrd/page/tier_page.dart';
 import 'package:scrd/provider/bottomsheet_provider.dart';
+import 'package:scrd/provider/filter_provider.dart';
+import 'package:scrd/provider/filter_theme_provider.dart';
+import 'package:scrd/provider/my_review_provider.dart';
 import 'package:scrd/provider/navigation_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:scrd/provider/review_provider.dart';
+import 'package:scrd/provider/saved_theme_provider.dart';
 import 'package:scrd/provider/tag_selection_provider.dart';
+import 'package:scrd/provider/theme_provider.dart';
 
 import 'auth/animation_page.dart';
 import 'components/infitite_scrolling_background.dart';
@@ -28,6 +34,13 @@ void main() async {
         ChangeNotifierProvider(create: (context) => NavigationProvider()),
         ChangeNotifierProvider(create: (context) => BottomSheetProvider()),
         ChangeNotifierProvider(create: (context) => TagSelectionProvider()),
+        ChangeNotifierProvider(
+            create: (context) => ThemeProvider()..fetchTheme()),
+        ChangeNotifierProvider(create: (context) => ReviewProvider()),
+        ChangeNotifierProvider(create: (context) => FilterThemeProvider()),
+        ChangeNotifierProvider(create: (context) => FilterProvider()),
+        ChangeNotifierProvider(create: (context) => MyReviewProvider()),
+        ChangeNotifierProvider(create: (context) => SavedThemeProvider()),
       ],
       child: const MyApp(),
     ),
@@ -88,8 +101,8 @@ class TotalLoginPage extends StatelessWidget {
           //   speed: 20.0, // 애니메이션 속도 (초 단위)
           // ),
           // 로그인 폼을 배경 위에 배치
-          // const LoginPage(),
-          const NavPage()
+          const LoginPage(),
+          //const NavPage()
           // TierPage(),
         ],
       ),
