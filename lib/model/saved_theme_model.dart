@@ -1,25 +1,28 @@
 class SavedThemeModel {
   final int themeId;
-  final String themeTitle;
+  final String title;
+  final String description;
+  final String image;
+  final String brand;
   final String branch;
-  final String location;
-  final String imageUrl;
 
   SavedThemeModel({
     required this.themeId,
-    required this.themeTitle,
+    required this.title,
+    required this.description,
+    required this.image,
+    required this.brand,
     required this.branch,
-    required this.location,
-    required this.imageUrl,
   });
 
   factory SavedThemeModel.fromJson(Map<String, dynamic> json) {
     return SavedThemeModel(
-      themeId: json['themeId'],
-      themeTitle: json['themeTitle'],
-      branch: json['branch'],
-      location: json['location'],
-      imageUrl: json['imageUrl'],
+      themeId: json['themeId'] ?? 0,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      image: json['image'] ?? '',
+      brand: json['brand'] ?? '',
+      branch: json['branch'] ?? '',
     );
   }
 }

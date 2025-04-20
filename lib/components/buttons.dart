@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../provider/select_theme_provider.dart';
 import '../provider/tag_selection_provider.dart';
 
 Widget hashtag(List<String> tagStrList, Function(String) onTagAdded,
@@ -145,25 +146,30 @@ Widget hashtagCenter(
 }
 
 class SelectThemeButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback onPressed;
   final bool isTapped;
-  const SelectThemeButton(
-      {Key? key, required this.onTap, required this.isTapped})
-      : super(key: key);
+
+  const SelectThemeButton({
+    Key? key,
+    required this.onPressed,
+    required this.isTapped,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final selectedTheme = context.watch<SelectThemeProvider>().selectedTheme;
+
     return GestureDetector(
       onTap: () {
-        onTap();
+        onPressed();
         debugPrint('SelectThemeButton isTapped: $isTapped');
       },
-      child: isTapped
+      child: selectedTheme == null
           ? Container(
               width: 352,
               height: 80,
               padding: const EdgeInsets.only(left: 25),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xFF131313),
               ),
               child: Column(
@@ -171,15 +177,14 @@ class SelectThemeButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Icon(Icons.location_on,
                           color: Colors.grey, size: 22),
                       const SizedBox(width: 8),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           const Text(
                             "이 곳을 눌러 테마를 선택해주세요.",
                             style: TextStyle(
@@ -188,17 +193,13 @@ class SelectThemeButton extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Row(
-                            children: [
-                              SizedBox(width: 4),
-                              Text(
-                                "(같은 테마더라도 지점이 다를 수 있습니다.)",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(height: 4),
+                          const Text(
+                            "(같은 테마더라도 지점이 다를 수 있습니다.)",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -211,46 +212,45 @@ class SelectThemeButton extends StatelessWidget {
               width: 352,
               height: 80,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     width: 66,
                     height: 80,
                     child: Image.network(
-                        fit: BoxFit.fill,
-                        'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg'),
+                      selectedTheme.image,
+                      fit: BoxFit.fill,
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.only(left: 18.0),
                     width: MediaQuery.of(context).size.width - 98,
-                    decoration: BoxDecoration(color: const Color(0xFF121212)),
+                    decoration: const BoxDecoration(color: Color(0xFF121212)),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '머니머니부동산',
-                          style: TextStyle(
+                          selectedTheme.title,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 15,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        SizedBox(height: 13),
+                        const SizedBox(height: 13),
                         Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.location_on,
                               size: 14,
-                              color: const Color(0xFFB9B9B9),
+                              color: Color(0xFFB9B9B9),
                             ),
-                            SizedBox(width: 3),
+                            const SizedBox(width: 3),
                             Text(
-                              '키이스케이프 | 스테이션점',
-                              style: TextStyle(
-                                color: const Color(0xFFB9B9B9),
+                              selectedTheme.location,
+                              style: const TextStyle(
+                                color: Color(0xFFB9B9B9),
                                 fontSize: 10.5,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w700,
@@ -262,7 +262,8 @@ class SelectThemeButton extends StatelessWidget {
                     ),
                   )
                 ],
-              )),
+              ),
+            ),
     );
   }
 }

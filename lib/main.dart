@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:scrd/auth/login.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:scrd/page/tier_page.dart';
+import 'package:scrd/provider/available_time_provider.dart';
 import 'package:scrd/provider/bottomsheet_provider.dart';
+import 'package:scrd/provider/detail_provider.dart';
 import 'package:scrd/provider/filter_provider.dart';
 import 'package:scrd/provider/filter_theme_provider.dart';
 import 'package:scrd/provider/my_review_provider.dart';
@@ -13,8 +15,10 @@ import 'package:scrd/provider/navigation_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:scrd/provider/review_provider.dart';
 import 'package:scrd/provider/saved_theme_provider.dart';
+import 'package:scrd/provider/select_theme_provider.dart';
 import 'package:scrd/provider/tag_selection_provider.dart';
 import 'package:scrd/provider/theme_provider.dart';
+import 'package:scrd/provider/upload_provider.dart';
 
 import 'auth/animation_page.dart';
 import 'components/infitite_scrolling_background.dart';
@@ -35,12 +39,16 @@ void main() async {
         ChangeNotifierProvider(create: (context) => BottomSheetProvider()),
         ChangeNotifierProvider(create: (context) => TagSelectionProvider()),
         ChangeNotifierProvider(
-            create: (context) => ThemeProvider()..fetchTheme()),
+            create: (context) => ThemeProvider()..loadInitialThemes()),
         ChangeNotifierProvider(create: (context) => ReviewProvider()),
         ChangeNotifierProvider(create: (context) => FilterThemeProvider()),
         ChangeNotifierProvider(create: (context) => FilterProvider()),
         ChangeNotifierProvider(create: (context) => MyReviewProvider()),
         ChangeNotifierProvider(create: (context) => SavedThemeProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeDetailProvider()),
+        ChangeNotifierProvider(create: (context) => AvailableTimeProvider()),
+        ChangeNotifierProvider(create: (context) => SelectThemeProvider()),
+        ChangeNotifierProvider(create: (context) => UploadProvider())
       ],
       child: const MyApp(),
     ),

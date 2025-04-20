@@ -27,7 +27,9 @@ class _HomePageState extends State<NavPage> {
   final List<Widget> _pages = [
     DateGridPage(),
     FindGroupPage(),
-    GroupReviewPage(),
+    UploadPage(
+      isReviewMode: false,
+    ),
     // MySavedPage(),
     NotificationPage(),
     AfterLogin(),
@@ -116,7 +118,10 @@ class _HomePageState extends State<NavPage> {
               // + 버튼 눌렀을 때 업로드 페이지 전체화면으로 push
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => GroupReviewPage()),
+                MaterialPageRoute(
+                    builder: (_) => UploadPage(
+                          isReviewMode: false,
+                        )),
               );
             } else {
               navigationProvider.setIndex(index);

@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:scrd/model/upload_party.dart';
 import 'package:scrd/page/search_theme.dart';
 import 'package:time_picker_spinner/time_picker_spinner.dart';
-
 import '../components/buttons.dart';
+import '../model/review_upload.dart';
+import '../model/theme.dart';
+import '../provider/select_theme_provider.dart';
+import '../provider/upload_provider.dart';
 
-class GroupReviewPage extends StatefulWidget {
+class UploadPage extends StatefulWidget {
+  final bool isReviewMode;
+
+  const UploadPage({
+    Key? key,
+    required this.isReviewMode,
+  }) : super(key: key);
+
   @override
-  _GroupReviewPageState createState() => _GroupReviewPageState();
+  State<UploadPage> createState() => _UploadPageState();
 }
 
-class _GroupReviewPageState extends State<GroupReviewPage> {
+class _UploadPageState extends State<UploadPage> {
   bool isRecruitment = true;
   bool isRated = false;
   double rating = 0;
@@ -28,15 +40,51 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
   bool isDatePicked = false; //캘린더 날짜 선택 여부
   bool isTapped = false;
   Color red = Color(0xFFD90206);
+  final _formKey = GlobalKey<FormState>();
+  bool _isSubmitting = false;
+  late SelectThemeProvider _selectThemeProvider;
 
-  void _toggleTag(String tag) {
-    setState(() {
-      if (selectedTags.contains(tag)) {
-        selectedTags.remove(tag);
-      } else {
-        selectedTags.add(tag);
-      }
-    });
+  final Map<String, int> tagToIdMap = {
+    "#감성적인": 1,
+    "#귀여운": 2,
+    "#신비한": 3,
+    "#스타일있는": 4,
+    "#미스테리한": 5,
+    "#복고무드": 6,
+    "#아날로그감성": 7,
+    "#타임슬립체험": 8,
+    "#몽글몽글무드": 9,
+    "#러블리테마": 10,
+    "#귀여움주의": 11,
+    "#달콤살벌": 12,
+    "#심쿵주의보": 13,
+    "#오싹한무드": 14,
+    "#긴장감폭발": 15,
+    "#소름돋는감성": 16,
+    "#조용한공포": 17,
+    "#숨멎주의": 18,
+    "#긴장백배": 19,
+    "#심리공포감성": 20,
+    "#섬세한연출": 21,
+    "#감성디테일": 22,
+    "#눈치게임시작": 23,
+    "#감정선폭발": 24,
+    "#잔잔한몰입감": 25,
+    "#디테일맛집": 26,
+  };
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectThemeProvider =
+        Provider.of<SelectThemeProvider>(context, listen: false);
+    isRecruitment = _selectThemeProvider.selectedMode == UploadMode.recruitment;
+  }
+
+  @override
+  void dispose() {
+    _selectThemeProvider.clearSelectedTheme(); // ✅ 안전하게 사용
+    super.dispose();
   }
 
   bool isFormCompleteForReview() {
@@ -57,8 +105,75 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
         selectedTime != null;
   }
 
+  Future<void> _submitForm() async {
+    final selectedTheme = _selectThemeProvider.selectedTheme;
+    if (selectedTheme == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('테마를 선택해주세요.')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    final provider = Provider.of<UploadProvider>(context, listen: false);
+    final currentMode =
+        Provider.of<SelectThemeProvider>(context, listen: false).selectedMode;
+
+    bool success = false;
+
+    if (currentMode == UploadMode.review) {
+      final review = ReviewUpload(
+        text: descriptionController.text.trim(),
+        level: puzzleLevel,
+        stars: rating.toInt(),
+        horror: isScary ? 1 : 0,
+        activity: isActive ? 1 : 0,
+        themeId: selectedTheme.id,
+        tagIds: selectedTags
+            .map((tag) => tagToIdMap[tag] ?? 0)
+            .where((id) => id != 0)
+            .toList(),
+        isSuccessful: isEscaped,
+        hintUsageCount: hintCount,
+      );
+      success = await provider.uploadReview(selectedTheme.id, review);
+    } else {
+      final deadline = DateTime(
+        selectedDate?.year ?? DateTime.now().year,
+        selectedDate?.month ?? DateTime.now().month,
+        selectedDate?.day ?? DateTime.now().day,
+        selectedTime?.hour ?? 18,
+        selectedTime?.minute ?? 0,
+      );
+
+      final party = PartyUpload(
+        title: titleController.text.trim(),
+        content: descriptionController.text.trim(),
+        currentParticipants: 1,
+        maxParticipants: 4,
+        deadline: deadline.toIso8601String(),
+      );
+      success = await provider.uploadParty(selectedTheme.id, party);
+    }
+
+    setState(() => _isSubmitting = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('업로드 성공!')),
+      );
+      Navigator.of(context).pop();
+    } else {
+      debugPrint("Upload failed");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('업로드 실패. 다시 시도해주세요.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectThemeProvider = Provider.of<SelectThemeProvider>(context);
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -71,6 +186,8 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
             children: [
               IconButton(
                   onPressed: () {
+                    Provider.of<SelectThemeProvider>(context, listen: false)
+                        .clearSelectedTheme();
                     Navigator.of(context).pop();
                   },
                   icon: Icon(
@@ -78,7 +195,12 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
                     color: Colors.white,
                   )),
               GestureDetector(
-                onTap: () => setState(() => isRecruitment = true),
+                onTap: () {
+                  setState(() => isRecruitment = true);
+                  selectThemeProvider.setMode(UploadMode.recruitment); // ⭐
+                  Provider.of<SelectThemeProvider>(context, listen: false)
+                      .clearSelectedTheme();
+                },
                 child: Text(
                   "일행 모집",
                   style: TextStyle(
@@ -90,7 +212,12 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
               ),
               SizedBox(width: 13),
               GestureDetector(
-                onTap: () => setState(() => isRecruitment = false),
+                onTap: () {
+                  setState(() => isRecruitment = false);
+                  selectThemeProvider.setMode(UploadMode.review); // ⭐
+                  Provider.of<SelectThemeProvider>(context, listen: false)
+                      .clearSelectedTheme();
+                },
                 child: Text(
                   "리뷰",
                   style: TextStyle(
@@ -120,6 +247,7 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
                     (!isRecruitment && isFormCompleteForReview())
                 ? () {
                     // 등록 로직
+                    _submitForm();
                   }
                 : null,
             style: ButtonStyle(
@@ -163,42 +291,6 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
       ["#디테일맛집"]
     ];
 
-    final Set<String> selectedTags = {};
-
-    void handleTagToggle(String tag) {
-      setState(() {
-        if (selectedTags.contains(tag)) {
-          selectedTags.remove(tag);
-        } else {
-          if (selectedTags.length < 5) {
-            debugPrint("Selected Tags: $tag");
-            selectedTags.add(tag);
-          } else {
-            Fluttertoast.showToast(
-              msg: "태그는 최대 5개까지 선택할 수 있습니다.",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.black87,
-              textColor: Colors.white,
-              fontSize: 13,
-            );
-          }
-        }
-      });
-    }
-
-    void _addTag(String tag) {
-      setState(() {
-        tags.add(tag);
-      });
-    }
-
-    void _removeTag(String tag) {
-      setState(() {
-        tags.remove(tag);
-      });
-    }
-
     int min = 0;
     int sec = 0;
 
@@ -207,17 +299,21 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
       children: [
         SizedBox(height: 30),
         SelectThemeButton(
-            onTap: () {
-              setState(() {
-                isTapped = !isTapped;
-              });
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //       builder: (context) => const SearchThemePage()),
-              // );
-            },
-            isTapped: isTapped),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SearchThemePage(),
+              ),
+            );
+
+            if (result != null) {
+              Provider.of<SelectThemeProvider>(context, listen: false)
+                  .selectTheme(result);
+            }
+          },
+          isTapped: isTapped, // 필요하다면 여전히 전달
+        ),
         SizedBox(height: 24),
         sectionTitle2('테마의 평점을 남겨주세요 !'),
         Row(
@@ -792,54 +888,26 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
     );
   }
 
-  Widget _timeInputBox({
-    required TextEditingController controller,
-    required Function(String) onChanged,
-  }) {
-    return Container(
-      width: 120,
-      height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Color(0xff2D0000),
-        border: Border.all(color: Color(0xffB80205), width: 2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: TextField(
-          controller: controller,
-          textAlign: TextAlign.center,
-          maxLength: 2,
-          style: const TextStyle(
-            fontSize: 45,
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            height: 1.16,
-          ),
-          keyboardType: TextInputType.number,
-          onChanged: onChanged,
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            counterText: "", // 글자수 없애기
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildRecruitmentSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(height: 30),
         SelectThemeButton(
-          onTap: () {
-            Navigator.push(
+          onPressed: () async {
+            final result = await Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SearchThemePage()),
+              MaterialPageRoute(
+                builder: (_) => const SearchThemePage(),
+              ),
             );
+
+            if (result != null) {
+              Provider.of<SelectThemeProvider>(context, listen: false)
+                  .selectTheme(result);
+            }
           },
-          isTapped: isTapped,
+          isTapped: isTapped, // 필요하다면 여전히 전달
         ),
         sectionTitle('날짜를 선택해주세요 !'),
         CustomPersistentDatePicker(
@@ -935,8 +1003,6 @@ class _GroupReviewPageState extends State<GroupReviewPage> {
             SizedBox(height: 30),
           ],
         ),
-
-// 내용 입력 필드
       ],
     );
   }

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/components/buttons.dart';
+import 'package:scrd/model/saved_theme_model.dart';
 import 'package:scrd/page/my_reply_page.dart';
 
 import '../components/filter_row_widget.dart';
+import '../model/theme.dart';
 import '../provider/bottomsheet_provider.dart';
 import '../provider/saved_theme_provider.dart';
 
@@ -19,6 +21,7 @@ class _MySavedPageState extends State<MySavedPage> {
   late DateTime _currentDate;
   late DateTime _selectedDate;
   int clicked = 0;
+  late Future<void> _fetchSavedThemesFuture;
 
   @override
   void initState() {
@@ -26,10 +29,9 @@ class _MySavedPageState extends State<MySavedPage> {
     _currentDate = DateTime.now();
     _selectedDate = DateTime.now();
     clicked = 0;
-    Future.microtask(() {
-      Provider.of<SavedThemeProvider>(context, listen: false)
-          .fetchSavedThemes();
-    });
+    final savedProvider =
+        Provider.of<SavedThemeProvider>(context, listen: false);
+    _fetchSavedThemesFuture = savedProvider.fetchAndSetSavedThemes();
   }
 
   List<DateTime> _generateDateRange() {
@@ -513,6 +515,9 @@ class _MySavedPageState extends State<MySavedPage> {
 
   @override
   Widget build(BuildContext context) {
+    final savedProvider =
+        Provider.of<SavedThemeProvider>(context, listen: false);
+
     final savedThemeProvider = Provider.of<SavedThemeProvider>(context);
     final dates = _generateDateRange();
     return Scaffold(
@@ -621,271 +626,312 @@ class _MySavedPageState extends State<MySavedPage> {
         ),
         toolbarHeight: 130,
       ),
-      body: savedThemeProvider.isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: savedThemeProvider.savedThemes.length,
-              itemBuilder: (context, index) {
-                final theme = savedThemeProvider.savedThemes[index];
-                return GestureDetector(
-                  // onTap: () => showCustomBottomSheet(context),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => MyReviewPage()),
+      body: FutureBuilder(
+          future: _fetchSavedThemesFuture, // ⭐ 수정된 부분
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else {
+              final savedThemes = savedProvider.savedThemes;
+
+              return ListView.builder(
+                itemCount: savedThemes.length,
+                itemBuilder: (context, index) {
+                  final themeId = savedThemes[index];
+                  if (savedThemes.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        '저장된 테마가 없습니다.',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     );
-                  },
-                  child: Card(
-                    color: Colors.black,
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 0.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  } else {
+                    return GestureDetector(
+                      // onTap: () => showCustomBottomSheet(context),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => MyReviewPage()),
+                        );
+                      },
+                      child: Card(
+                        color: Colors.black,
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 0.0),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 144,
-                                height: 161,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    // 네트워크 이미지
-                                    ClipRRect(
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 144,
+                                    height: 161,
+                                    decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        // 'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
-                                        theme.imageUrl,
-                                        width: 144,
-                                        height: 161,
-                                        fit: BoxFit.cover,
-                                      ),
                                     ),
-
-                                    // 하단 그라데이션 효과
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        height: 161 * 0.2, // 높이의 5분의 1
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            bottomLeft: Radius.circular(8),
-                                            bottomRight: Radius.circular(8),
-                                          ),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.black.withOpacity(0), // 투명
-                                              Colors.black
-                                                  .withOpacity(0.5), // 반투명
-                                              Colors.black
-                                                  .withOpacity(0.8), // 진한 검정
-                                            ],
+                                    child: Stack(
+                                      children: [
+                                        // 네트워크 이미지
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.network(
+                                            // 'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+                                            savedThemes[index].image,
+                                            width: 144,
+                                            height: 161,
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
-                                      ),
-                                    ),
 
-                                    // 좌측 하단 평점 추가
-                                    Positioned(
-                                      bottom: 4,
-                                      left: 6,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.star,
-                                            color:
-                                                Color(0xffD90206), // 별 아이콘 색상
-                                            size: 14,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "4.0", // 평점
-                                            style: TextStyle(
-                                              color: Color(0xffD90206),
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(width: 4),
-                                          Transform.translate(
-                                            offset: Offset(0, 1.5), // 위로 1px 이동
-                                            child: Text(
-                                              "(12)", // 리뷰 수
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 8,
+                                        // 하단 그라데이션 효과
+                                        Positioned(
+                                          bottom: 0,
+                                          left: 0,
+                                          right: 0,
+                                          child: Container(
+                                            height: 161 * 0.2, // 높이의 5분의 1
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                bottomLeft: Radius.circular(8),
+                                                bottomRight: Radius.circular(8),
+                                              ),
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Colors.black
+                                                      .withOpacity(0), // 투명
+                                                  Colors.black
+                                                      .withOpacity(0.5), // 반투명
+                                                  Colors.black.withOpacity(
+                                                      0.8), // 진한 검정
+                                                ],
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Transform.translate(
-                                      offset: Offset(0, -4), // 위로 5px 이동
-                                      child: Text(
-                                        '머니머니부동산',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '키이스케이프 | 스테이션점',
-                                      style: TextStyle(
-                                          color: Colors.white70, fontSize: 11),
-                                      softWrap: true,
-                                    ),
-                                    SizedBox(height: 13),
-                                    Row(children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 2),
-                                        decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                        child: Text(
-                                          '강남',
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700),
+
+                                        // 좌측 하단 평점 추가
+                                        Positioned(
+                                          bottom: 4,
+                                          left: 6,
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.star,
+                                                color: Color(
+                                                    0xffD90206), // 별 아이콘 색상
+                                                size: 14,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                '??', // 평점
+                                                style: TextStyle(
+                                                  color: Color(0xffD90206),
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Transform.translate(
+                                                offset:
+                                                    Offset(0, 1.5), // 위로 1px 이동
+                                                child: Text(
+                                                  "(12)", // 리뷰 수
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 8,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Icon(Icons.watch_later_outlined,
-                                          color: Colors.white, size: 18),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        '80분',
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 13),
-                                      ),
-                                    ]),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      '30,000원',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(height: 16),
-                                    Row(
-                                      children: [
-                                        _buildRatingItem(
-                                            label: '난이도',
-                                            value: '5',
-                                            imagePath:
-                                                'assets/icon/puzzle_red.png',
-                                            imageSize: 21,
-                                            color: Color(0xffD90206)),
-                                        SizedBox(width: 13),
-                                        _buildRatingItem(
-                                          label: '공포도',
-                                          imageSize: 21,
-                                          imagePath: 'assets/icon/ghost.png',
-                                        ),
-                                        SizedBox(width: 12),
-                                        _buildRatingItem(
-                                          label: '활동성',
-                                          imagePath: 'assets/icon/shoe.png',
-                                          imageSize: 21,
-                                        ),
-                                        SizedBox(width: 9),
                                       ],
-                                    )
-                                  ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Transform.translate(
+                                          offset: Offset(0, -4), // 위로 5px 이동
+                                          child: Text(
+                                            savedThemes[index].title ??
+                                                '머니머니부동산',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          savedThemes[index].branch ??
+                                              '키이스케이프 | 스테이션점',
+                                          style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 11),
+                                          softWrap: true,
+                                        ),
+                                        SizedBox(height: 13),
+                                        Row(children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 2),
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            child: Text(
+                                              savedThemes[index].brand ?? '강남',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w700),
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Icon(Icons.watch_later_outlined,
+                                              color: Colors.white, size: 18),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            '80분',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 13),
+                                          ),
+                                        ]),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          '30,000원',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            _buildRatingItem(
+                                                label: '난이도',
+                                                value: '5',
+                                                imagePath:
+                                                    'assets/icon/puzzle_red.png',
+                                                imageSize: 21,
+                                                color: Color(0xffD90206)),
+                                            SizedBox(width: 13),
+                                            _buildRatingItem(
+                                              label: '공포도',
+                                              imageSize: 21,
+                                              imagePath:
+                                                  'assets/icon/ghost.png',
+                                            ),
+                                            SizedBox(width: 12),
+                                            _buildRatingItem(
+                                              label: '활동성',
+                                              imagePath: 'assets/icon/shoe.png',
+                                              imageSize: 21,
+                                            ),
+                                            SizedBox(width: 9),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: IconButton(
+                                      alignment: const Alignment(-1.0, -1.65),
+                                      padding: const EdgeInsets.all(0),
+                                      icon: Icon(
+                                        context
+                                                .watch<SavedThemeProvider>()
+                                                .isSaved(
+                                                    savedThemes[index].themeId)
+                                            ? Icons.bookmark // 저장된 경우
+                                            : Icons
+                                                .bookmark_border, // 저장 안 된 경우
+                                        color: context
+                                                .watch<SavedThemeProvider>()
+                                                .isSaved(
+                                                    savedThemes[index].themeId)
+                                            ? const Color(0xffD90206) // 빨간색
+                                            : Colors.white, // 기본색
+                                        size: 24,
+                                      ),
+                                      onPressed: () async {
+                                        final savedThemeProvider =
+                                            context.read<SavedThemeProvider>();
+
+                                        // ⭐ 여기 한 줄이면 끝난다!
+                                        await savedThemeProvider
+                                            .toggleSaveTheme(
+                                                savedThemes[index].themeId);
+                                      },
+                                    ),
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 13),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    '11 : 00',
+                                    '12 : 10',
+                                    '13 : 20',
+                                    '14 : 30',
+                                    '18 : 00',
+                                    '19 : 20',
+                                    '20 : 30'
+                                  ]
+                                      .map((time) => Container(
+                                            margin: const EdgeInsets.only(
+                                                right: 15),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Color(0xff2D0000),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                  color: Color(0xffD90206)),
+                                            ),
+                                            child: Text(
+                                              time,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 12),
+                                            ),
+                                          ))
+                                      .toList(),
                                 ),
                               ),
-                              IconButton(
-                                alignment: const Alignment(-1.0, -1.65),
-                                padding: const EdgeInsets.all(0),
-                                icon: Icon(
-                                  isBookmarkClicked
-                                      ? Icons.bookmark_border
-                                      : Icons.bookmark,
-                                  color: isBookmarkClicked
-                                      ? Colors.white
-                                      : Color(0xffD90206),
-                                  size: 24,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    isBookmarkClicked = !isBookmarkClicked;
-                                  });
-                                },
-                              ),
+                              SizedBox(height: 5),
+                              Divider(color: Color(0xff363636)),
                             ],
                           ),
-                          const SizedBox(height: 13),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                '11 : 00',
-                                '12 : 10',
-                                '13 : 20',
-                                '14 : 30',
-                                '18 : 00',
-                                '19 : 20',
-                                '20 : 30'
-                              ]
-                                  .map((time) => Container(
-                                        margin:
-                                            const EdgeInsets.only(right: 15),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xff2D0000),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: Color(0xffD90206)),
-                                        ),
-                                        child: Text(
-                                          time,
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 12),
-                                        ),
-                                      ))
-                                  .toList(),
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Divider(color: Color(0xff363636)),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
+                    );
+                  }
+                },
+              );
+            }
+          }),
     );
   }
 }

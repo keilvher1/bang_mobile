@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../auth/secure_storage.dart';
+import '../model/detail.dart';
 import '../model/review.dart';
 import '../model/saved_theme_model.dart';
 import '../model/theme.dart';
@@ -41,6 +43,60 @@ class ApiService {
     } catch (e) {
       debugPrint("Error fetching theme list: $e");
       throw Exception("Failed to fetch theme list");
+    }
+  }
+
+  // api_server.dart
+  Future<List<dynamic>> fetchThemePaged({
+    required int page,
+    required int size,
+    String? platform = 'mobile',
+    String? date,
+  }) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    final uri = Uri.parse(
+      '${ApiConstants.baseUrl}/scrd/api/theme/paged?page=$page&size=20&platform=$platform${date != null ? '&date=$date' : ''}',
+    );
+    debugPrint("Request URL: $uri");
+
+    final response = await http.get(
+      uri,
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Accept": "application/json",
+        "Origin": ApiConstants.baseUrl,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint("Response: ${response.body}");
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load paged themes");
+    }
+  }
+
+  Future<ThemeDetail> fetchThemeDetail(int id) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    final url = "${ApiConstants.themeDetail}/$id";
+    debugPrint("Request URL: $url"); // 요청 URL 확인
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Accept": "application/json; charset=UTF-8",
+        "Origin": ApiConstants.baseUrl,
+      },
+    );
+    debugPrint("ResponseCode: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes)); // <- 한글 깨짐 방지
+      debugPrint("ResponseBody: $data");
+      return ThemeDetail.fromJson(data);
+    } else {
+      throw Exception('Failed to load theme detail');
     }
   }
 
@@ -99,8 +155,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        return jsonDecode(decodedBody);
+        return jsonDecode(response.body);
       } else {
         throw Exception("Failed to fetch filtered themes");
       }
@@ -109,52 +164,74 @@ class ApiService {
     }
   }
 
-  Future<List<ThemeModel>> fetchFilteredThemeLists({
+  Future<List<dynamic>> fetchFilteredThemeLists({
     int? horror,
     int? activity,
     String? region,
     double? levelMin,
     double? levelMax,
+    DateTime? selectedDate,
   }) async {
     try {
       final accessToken = await secureStorage.readToken("x-access-token");
+
       if (accessToken == null || accessToken.isEmpty) {
         throw Exception("No access token found.");
       }
 
+      // Query parameters
       Map<String, String> queryParameters = {};
       if (horror != null) queryParameters['horror'] = horror.toString();
       if (activity != null) queryParameters['activity'] = activity.toString();
-      if (region != null && region != "전체")
-        queryParameters['location'] = region; // 🔥 수정
-      if (levelMin != null)
-        queryParameters['levelMin'] = levelMin.toString(); // 🔥 수정
-      if (levelMax != null)
-        queryParameters['levelMax'] = levelMax.toString(); // 🔥 수정
+      if (region != null && region != "전체") {
+        queryParameters['location'] = region;
+      }
+      if (levelMin != null) queryParameters['levelMin'] = levelMin.toString();
+      if (levelMax != null) queryParameters['levelMax'] = levelMax.toString();
 
-      Uri uri = Uri.http(
-          ApiConstants.baseHost, '/scrd/api/theme/filter', queryParameters);
+      // URI 구성
+      final String formattedDate =
+          DateFormat('yyyy-MM-dd').format(selectedDate ?? DateTime.now());
+      Uri uri;
 
-      debugPrint("Request URL: $uri"); // 요청 URL 확인
+      if (queryParameters.isEmpty) {
+        uri = Uri.parse(
+          '${ApiConstants.baseUrl}/scrd/api/theme/paged?page=0&size=20&platform=mobile&date=$formattedDate',
+        );
+      } else {
+        uri = Uri.http(
+          ApiConstants.baseHost,
+          '/scrd/api/theme/filter',
+          queryParameters,
+        );
+      }
+
+      debugPrint("Filtered Request URL: $uri");
+
       final response = await http.get(
         uri,
         headers: {
           "Authorization": "Bearer $accessToken",
-          "Accept": "application/json; charset=UTF-8",
+          "Accept": "application/json",
           "Origin": ApiConstants.baseUrl,
         },
       );
 
+      debugPrint("Filtered Response Code: ${response.statusCode}");
+
       if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> jsonList = jsonDecode(decodedBody);
-        return jsonList.map((json) => ThemeModel.fromJson(json)).toList();
+        try {
+          debugPrint("Response: ${response.body}");
+          return jsonDecode(response.body);
+        } catch (e) {
+          debugPrint("❗ JSON decoding error: $e");
+          throw Exception("JSON decoding failed");
+        }
       } else {
-        throw Exception(
-            "Failed to load filtered themes: ${response.statusCode}");
+        throw Exception("Failed to fetch themes: ${response.statusCode}");
       }
     } catch (e) {
-      debugPrint("Error fetching filtered themes: $e");
+      debugPrint("Exception during filter fetch: $e");
       throw Exception("Failed to fetch filtered themes");
     }
   }
@@ -210,17 +287,143 @@ class ApiService {
           "Origin": ApiConstants.baseUrl,
         },
       );
+      debugPrint("ResponseCode: ${response.statusCode}");
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
+        debugPrint("ResponseBody: $decodedBody");
         final List<dynamic> jsonList = jsonDecode(decodedBody);
-        return jsonList.map((json) => SavedThemeModel.fromJson(json)).toList();
+        return jsonList.map((json) {
+          if (json is Map<String, dynamic>) {
+            return SavedThemeModel.fromJson(json);
+          } else if (json is SavedThemeModel) {
+            return json;
+          } else {
+            throw Exception("Unexpected type: ${json.runtimeType}");
+          }
+        }).toList();
       } else {
         throw Exception("Failed to load saved themes: ${response.statusCode}");
       }
     } catch (e) {
       debugPrint("Error fetching saved themes: $e");
       throw Exception("Failed to fetch saved themes");
+    }
+  }
+
+  Future<bool> saveTheme(int themeId) async {
+    try {
+      final token = await secureStorage.readToken("x-access-token"); // 토큰 가져오기
+      if (token == null || token.isEmpty) {
+        throw Exception("No access token found.");
+      }
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConstants.baseUrl}/scrd/api/save/$themeId',
+        ),
+        headers: {
+          "Authorization": "Bearer $token", // ✅ 헤더에 꼭 Bearer 토큰 넣기
+          "Accept": "application/json",
+          "Origin": ApiConstants.baseUrl,
+        },
+      );
+      debugPrint('Authorization Header: Bearer $token');
+      debugPrint("'uri: ${ApiConstants.baseUrl}/scrd/api/save/$themeId'");
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint('Failed to save theme: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Exception saving theme: $e');
+      return false;
+    }
+  }
+
+  Future<List<String>> fetchAvailableTimes(int themeId, String date) async {
+    try {
+      final accessToken = await secureStorage.readToken("x-access-token");
+      final uri = Uri.parse(
+          'http://localhost:8080/scrd/api/theme/$themeId/available-times?date=$date');
+
+      final response = await http.get(uri, headers: {
+        "Authorization": "Bearer $accessToken",
+        "Accept": "application/json",
+      });
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(utf8.decode(response.bodyBytes));
+        final times = List<String>.from(json['availableTime']);
+        return times;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching available times: $e');
+      return [];
+    }
+  }
+
+  Future<List<dynamic>> searchThemes(String keyword) async {
+    try {
+      final accessToken = await secureStorage.readToken("x-access-token");
+
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception("No access token found.");
+      }
+
+      final uri = Uri.parse(
+          '${ApiConstants.baseUrl}/scrd/api/theme/search?keyword=$keyword');
+      debugPrint("Search Request URL: $uri");
+
+      final response = await http.get(
+        uri,
+        headers: {
+          "Authorization": "Bearer $accessToken",
+          "Accept": "application/json",
+          "Origin": ApiConstants.baseUrl,
+        },
+      );
+
+      debugPrint("Search ResponseCode: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        debugPrint("Search ResponseBody: $decodedBody");
+        return jsonDecode(response.body); // List<dynamic> 반환
+      } else {
+        throw Exception("Failed to search themes: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Exception searching themes: $e");
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> postJson({
+    required String url,
+    required Map<String, dynamic> body,
+  }) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception("No access token found.");
+    }
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to post: ${response.body}');
     }
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -7,11 +9,16 @@ import 'package:scrd/utils/endpoint.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../components/filter_row_widget.dart';
+import '../model/detail.dart';
+import '../model/saved_theme_model.dart';
 import '../model/theme.dart';
+import '../provider/available_time_provider.dart';
 import '../provider/bottomsheet_provider.dart';
+import '../provider/detail_provider.dart';
 import '../provider/filter_provider.dart';
 import '../provider/filter_theme_provider.dart';
 import '../provider/review_provider.dart';
+import '../provider/saved_theme_provider.dart';
 import '../provider/theme_provider.dart';
 
 class DateGridPage extends StatefulWidget {
@@ -25,6 +32,8 @@ class _DateGridPageState extends State<DateGridPage> {
   late DateTime _currentDate;
   late DateTime _selectedDate;
   int clicked = 0;
+  late ScrollController _scrollController;
+  late ThemeProvider _themeProvider;
 
   @override
   void initState() {
@@ -32,6 +41,24 @@ class _DateGridPageState extends State<DateGridPage> {
     _currentDate = DateTime.now();
     _selectedDate = DateTime.now();
     clicked = 0;
+    _themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    _themeProvider.loadInitialThemes();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    themeProvider.loadInitialThemes(date: _selectedDate);
+    _scrollController = ScrollController()
+      ..addListener(() {
+        if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
+          // 맨 아래 근처에 오면 추가 로드
+          _themeProvider.loadMoreThemes();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   List<DateTime> _generateDateRange() {
@@ -134,7 +161,12 @@ class _DateGridPageState extends State<DateGridPage> {
     );
   }
 
-  void showCustomBottomSheet(BuildContext context, ThemeModel theme) {
+  void showCustomBottomSheet(
+    BuildContext context,
+    ThemeModel theme,
+  ) async {
+    //
+    debugPrint('BottomSheet: ${theme.proportion}');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -146,9 +178,12 @@ class _DateGridPageState extends State<DateGridPage> {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => BottomSheetProvider()),
-            ChangeNotifierProvider(
-                create: (_) =>
-                    ReviewProvider()..fetchReviews(theme.id)), //⭐ 리뷰 불러오기
+            // ChangeNotifierProvider(
+            //     create: (_) =>
+            //         ReviewProvider()..fetchReviews(theme.id)), //⭐ 리뷰 불러오기
+            // ChangeNotifierProvider(
+            //     create: (_) => ThemeDetailProvider()
+            //       ..fetchThemeDetail(theme.id)), //⭐ 테마 상세정보 불러오기
           ],
           child: Consumer<BottomSheetProvider>(
             builder: (context, provider, _) {
@@ -233,30 +268,37 @@ class _DateGridPageState extends State<DateGridPage> {
   }
 
   Widget _buildDetailContent(ThemeModel theme) {
+    final themeDetailProvider =
+        Provider.of<ThemeDetailProvider>(context, listen: true);
+    final themeDetail = themeDetailProvider.themeDetail;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    theme.title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      theme.title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  theme.branch,
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                )
-              ],
+                  const SizedBox(width: 8),
+                  Text(
+                    theme.branch ?? 'none',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  )
+                ],
+              ),
             ),
             SizedBox(height: 8),
             Row(children: [
@@ -296,7 +338,7 @@ class _DateGridPageState extends State<DateGridPage> {
                 SizedBox(width: 14),
                 _buildRatingItem(
                   label: '장치비율',
-                  value: theme.proportion ?? '0',
+                  value: themeDetail?.proportion ?? '0',
                   fontSize: 17,
                   color: Color(0xffD90206),
                 ),
@@ -321,7 +363,7 @@ class _DateGridPageState extends State<DateGridPage> {
             //   color: Color(0xff363636),
             // ),
             Text(
-              theme.description,
+              theme.description ?? '설명 없음',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -499,7 +541,7 @@ class _DateGridPageState extends State<DateGridPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              _launchUrl(Uri.parse(theme.url));
+              _launchUrl(Uri.parse(theme.url ?? 'http://example.com'));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
@@ -520,14 +562,22 @@ class _DateGridPageState extends State<DateGridPage> {
     return formatter.format(amount);
   }
 
+  String fixBrokenText(String brokenText) {
+    List<int> bytes = brokenText.codeUnits; // 유니코드 코드 유닛 리스트로 변환
+    return utf8.decode(bytes); // UTF-8로 디코딩
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final filterThemeProvider = Provider.of<FilterThemeProvider>(context);
+    // final availableTimeProvider = Provider.of<AvailableTimeProvider>(context);
+
     final themesToShow = filterThemeProvider.filteredThemes.isNotEmpty
         ? filterThemeProvider.filteredThemes
-        : themeProvider.themeList;
+        : themeProvider.themes;
     final dates = _generateDateRange();
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -568,6 +618,11 @@ class _DateGridPageState extends State<DateGridPage> {
                         onTap: () {
                           setState(() {
                             _selectedDate = date;
+                            final themeProvider = Provider.of<ThemeProvider>(
+                                context,
+                                listen: false);
+                            themeProvider.loadInitialThemes(
+                                date: _selectedDate);
                           });
                         },
                         child: Container(
@@ -634,281 +689,288 @@ class _DateGridPageState extends State<DateGridPage> {
         ),
         toolbarHeight: 130,
       ),
-      body: themeProvider.isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : ListView.builder(
-              itemCount: themesToShow.length,
-              itemBuilder: (context, index) {
-                final theme = themesToShow[index];
-                return GestureDetector(
-                  onTap: () async {
-                    final reviewProvider =
-                        Provider.of<ReviewProvider>(context, listen: false);
-                    await reviewProvider.fetchReviews(theme.id); // ★ 리뷰 불러오기
-                    showCustomBottomSheet(
-                        context, theme); // ★ 그 다음 BottomSheet 열기
-                  },
-                  child: Card(
-                    color: Colors.black,
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 0.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 144,
-                                height: 161,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    // 네트워크 이미지
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        theme.image,
-                                        width: 144,
-                                        height: 161,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-
-                                    // 하단 그라데이션 효과
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        height: 161 * 0.2, // 높이의 5분의 1
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            bottomLeft: Radius.circular(8),
-                                            bottomRight: Radius.circular(8),
-                                          ),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.black.withOpacity(0), // 투명
-                                              Colors.black
-                                                  .withOpacity(0.5), // 반투명
-                                              Colors.black
-                                                  .withOpacity(0.8), // 진한 검정
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    // 좌측 하단 평점 추가
-                                    Positioned(
-                                      bottom: 4,
-                                      left: 6,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.star,
-                                            color:
-                                                Color(0xffD90206), // 별 아이콘 색상
-                                            size: 14,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            theme.rating
-                                                .toStringAsFixed(1), // 평점
-                                            style: TextStyle(
-                                              color: Color(0xffD90206),
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(width: 4),
-                                          Transform.translate(
-                                            offset: Offset(0, 1.5), // 위로 1px 이동
-                                            child: Text(
-                                              '(${theme.reviewCount.toString()})', // 리뷰 수
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 8,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+      body: Consumer<ThemeProvider>(builder: (context, provider, child) {
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: themesToShow.length,
+          itemBuilder: (context, index) {
+            final theme = themesToShow[index];
+            final List<String> availableTimes = theme.availableTimes ?? [];
+            if (index < themesToShow.length) {
+              return GestureDetector(
+                onTap: () {
+                  final detailProvider =
+                      Provider.of<ThemeDetailProvider>(context, listen: false);
+                  final reviewProvider =
+                      Provider.of<ReviewProvider>(context, listen: false);
+                  reviewProvider.fetchReviews(theme.id); // ★ 리뷰 불러오기
+                  detailProvider.fetchThemeDetail(theme.id); // ★ 테마 상세정보 불러오기
+                  showCustomBottomSheet(
+                    context,
+                    theme,
+                  ); // ★ 그 다음 BottomSheet 열기
+                },
+                child: Card(
+                  color: Colors.black,
+                  margin: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 16.0),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 0.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 144,
+                              height: 161,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Transform.translate(
-                                      offset: Offset(0, -4), // 위로 5px 이동
-                                      child: Text(
-                                        theme.title,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                              child: Stack(
+                                children: [
+                                  // 네트워크 이미지
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      theme.image,
+                                      width: 144,
+                                      height: 161,
+                                      fit: BoxFit.cover,
                                     ),
-                                    Text(
-                                      theme.branch,
-                                      style: TextStyle(
-                                          color: Colors.white70, fontSize: 11),
-                                      softWrap: true,
-                                    ),
-                                    SizedBox(height: 13),
-                                    Row(children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 2),
-                                        decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                        child: Text(
-                                          theme.location,
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700),
-                                        ),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Icon(Icons.watch_later_outlined,
-                                          color: Colors.white, size: 18),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        theme.playtime.toString() + '분',
-                                        style: TextStyle(
-                                            color: Colors.white, fontSize: 13),
-                                      ),
-                                    ]),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      formatCurrency(theme.price).toString() +
-                                          '원',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    SizedBox(height: 16),
-                                    Row(
-                                      children: [
-                                        _buildRatingItem(
-                                            label: '난이도',
-                                            value:
-                                                theme.level.toStringAsFixed(0),
-                                            imagePath:
-                                                'assets/icon/puzzle_red.png',
-                                            imageSize: 21,
-                                            color: Color(0xffD90206)),
-                                        SizedBox(width: 13),
-                                        _buildRatingItem(
-                                          label: '공포도',
-                                          imageSize: 21,
-                                          imagePath: theme.horror == 0
-                                              ? 'assets/icon/ghost_in.png'
-                                              : 'assets/icon/ghost.png',
-                                        ),
-                                        SizedBox(width: 12),
-                                        _buildRatingItem(
-                                          label: '활동성',
-                                          imagePath: theme.activity == 0
-                                              ? 'assets/icon/shoe_in.png'
-                                              : 'assets/icon/shoe.png',
-                                          imageSize: 21,
-                                        ),
-                                        SizedBox(width: 9),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: IconButton(
-                                  alignment: Alignment(-1.0, -1.65),
-                                  padding: const EdgeInsets.all(0),
-                                  icon: Icon(
-                                    !isBookmarkClicked
-                                        ? Icons.bookmark_border
-                                        : Icons.bookmark,
-                                    color: !isBookmarkClicked
-                                        ? Colors.white
-                                        : Color(0xffD90206),
-                                    size: 24,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      isBookmarkClicked = !isBookmarkClicked;
-                                    });
-                                  },
-                                ),
+
+                                  // 하단 그라데이션 효과
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: 161 * 0.2, // 높이의 5분의 1
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(8),
+                                          bottomRight: Radius.circular(8),
+                                        ),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.black.withOpacity(0), // 투명
+                                            Colors.black
+                                                .withOpacity(0.5), // 반투명
+                                            Colors.black
+                                                .withOpacity(0.8), // 진한 검정
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  // 좌측 하단 평점 추가
+                                  Positioned(
+                                    bottom: 4,
+                                    left: 6,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          color: Color(0xffD90206), // 별 아이콘 색상
+                                          size: 14,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          theme.rating.toStringAsFixed(1), // 평점
+                                          style: TextStyle(
+                                            color: Color(0xffD90206),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Transform.translate(
+                                          offset: Offset(0, 1.5), // 위로 1px 이동
+                                          child: Text(
+                                            '(${theme.reviewCount.toString()})', // 리뷰 수
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 8,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 13),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                '11 : 00',
-                                '12 : 10',
-                                '13 : 20',
-                                '14 : 30',
-                                '18 : 00',
-                                '19 : 20',
-                                '20 : 30'
-                              ]
-                                  .map((time) => Container(
-                                        margin:
-                                            const EdgeInsets.only(right: 15),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xff2D0000),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                              color: Color(0xffD90206)),
-                                        ),
-                                        child: Text(
-                                          time,
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 12),
-                                        ),
-                                      ))
-                                  .toList(),
                             ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Transform.translate(
+                                    offset: Offset(0, -4), // 위로 5px 이동
+                                    child: Text(
+                                      theme.title,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    theme.branch,
+                                    style: TextStyle(
+                                        color: Colors.white70, fontSize: 11),
+                                    softWrap: true,
+                                  ),
+                                  SizedBox(height: 13),
+                                  Row(children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 2),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      child: Text(
+                                        theme.location,
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Icon(Icons.watch_later_outlined,
+                                        color: Colors.white, size: 18),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      theme.playtime.toString() + '분',
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 13),
+                                    ),
+                                  ]),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    formatCurrency(theme.price).toString() +
+                                        '원',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      _buildRatingItem(
+                                          label: '난이도',
+                                          value: theme.level.toStringAsFixed(0),
+                                          imagePath:
+                                              'assets/icon/puzzle_red.png',
+                                          imageSize: 21,
+                                          color: Color(0xffD90206)),
+                                      SizedBox(width: 13),
+                                      _buildRatingItem(
+                                        label: '공포도',
+                                        imageSize: 21,
+                                        imagePath: theme.horror == 0
+                                            ? 'assets/icon/ghost_in.png'
+                                            : 'assets/icon/ghost.png',
+                                      ),
+                                      SizedBox(width: 12),
+                                      _buildRatingItem(
+                                        label: '활동성',
+                                        imagePath: theme.activity == 0
+                                            ? 'assets/icon/shoe_in.png'
+                                            : 'assets/icon/shoe.png',
+                                        imageSize: 21,
+                                      ),
+                                      SizedBox(width: 9),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              child: IconButton(
+                                alignment: const Alignment(-1.0, -1.65),
+                                padding: const EdgeInsets.all(0),
+                                icon: Icon(
+                                  context
+                                          .watch<SavedThemeProvider>()
+                                          .isSaved(theme.id)
+                                      ? Icons.bookmark // 저장된 경우
+                                      : Icons.bookmark_border, // 저장 안 된 경우
+                                  color: context
+                                          .watch<SavedThemeProvider>()
+                                          .isSaved(theme.id)
+                                      ? const Color(0xffD90206) // 빨간색
+                                      : Colors.white, // 기본색
+                                  size: 24,
+                                ),
+                                onPressed: () async {
+                                  final savedThemeProvider =
+                                      context.read<SavedThemeProvider>();
+
+                                  // ⭐ 여기 한 줄이면 끝난다!
+                                  await savedThemeProvider
+                                      .toggleSaveTheme(theme.id);
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 13),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: availableTimes
+                                .map((time) => Container(
+                                      margin: const EdgeInsets.only(right: 15),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xff2D0000),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Color(0xffD90206)),
+                                      ),
+                                      child: Text(
+                                        time,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12),
+                                      ),
+                                    ))
+                                .toList(),
                           ),
-                          SizedBox(height: 5),
-                          Divider(color: Color(0xff363636)),
-                        ],
-                      ),
+                        ),
+                        SizedBox(height: 5),
+                        Divider(color: Color(0xff363636)),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            } else {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+          },
+        );
+      }),
     );
   }
 }
