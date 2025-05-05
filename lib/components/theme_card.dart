@@ -5,9 +5,9 @@ class ThemeCard extends StatelessWidget {
   final ThemeModel theme;
 
   const ThemeCard({
-    Key? key,
+    super.key,
     required this.theme,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class ThemeCard extends StatelessWidget {
       child: Row(
         children: [
           // 이미지
-          Container(
+          SizedBox(
             width: 66,
             height: 80,
             child: ClipRRect(

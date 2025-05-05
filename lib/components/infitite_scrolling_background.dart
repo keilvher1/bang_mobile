@@ -5,10 +5,10 @@ class InfiniteScrollingBackground extends StatefulWidget {
   final double speed; // 애니메이션 속도 (초 단위)
 
   const InfiniteScrollingBackground({
-    Key? key,
+    super.key,
     required this.imagePath,
     this.speed = 20.0,
-  }) : super(key: key);
+  });
 
   @override
   _InfiniteScrollingBackgroundState createState() =>

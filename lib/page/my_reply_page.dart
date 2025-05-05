@@ -5,7 +5,7 @@ import '../components/buttons.dart';
 import '../provider/my_review_provider.dart';
 
 class MyReviewPage extends StatefulWidget {
-  const MyReviewPage({Key? key}) : super(key: key);
+  const MyReviewPage({super.key});
 
   @override
   _MyReviewPageState createState() => _MyReviewPageState();
@@ -26,13 +26,13 @@ class _MyReviewPageState extends State<MyReviewPage> {
   @override
   Widget build(BuildContext context) {
     List<String> tags = ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"];
-    void _addTag(String tag) {
+    void addTag(String tag) {
       setState(() {
         tags.add(tag);
       });
     }
 
-    void _removeTag(String tag) {
+    void removeTag(String tag) {
       setState(() {
         tags.remove(tag);
       });
@@ -49,7 +49,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
                   color: Colors.white,
                 )),
@@ -141,7 +141,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                                 width: 200,
                                                 child: Text(
                                                   review.text,
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 16,
                                                     fontFamily: 'Inter',
@@ -155,7 +155,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                                 onTap: () {
                                                   // TODO: 액션
                                                 },
-                                                child: Icon(
+                                                child: const Icon(
                                                   Icons.more_vert,
                                                   color: Colors.white,
                                                   size: 20,
@@ -165,7 +165,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 2), // 간격 추가
-                                        Row(
+                                        const Row(
                                           children: [
                                             Icon(
                                               Icons.location_on,
@@ -175,7 +175,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                             Text(
                                               '키이스케이프 | 스테이션점',
                                               style: TextStyle(
-                                                color: const Color(0xFFB9B9B9),
+                                                color: Color(0xFFB9B9B9),
                                                 fontSize: 12,
                                                 fontFamily: 'Inter',
                                                 fontWeight: FontWeight.w700,
@@ -183,7 +183,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                             )
                                           ],
                                         ),
-                                        SizedBox(
+                                        const SizedBox(
                                           height: 10,
                                         ),
                                         Row(
@@ -194,24 +194,24 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                               label: '평점',
                                               value: review.stars.toString(),
                                               fontSize: 14,
-                                              color: Color(0xffD90206),
+                                              color: const Color(0xffD90206),
                                             ),
-                                            SizedBox(width: 14),
+                                            const SizedBox(width: 14),
                                             _buildRatingItem(
                                                 label: '난이도',
                                                 value: '-1',
                                                 imagePath:
                                                     'assets/icon/puzzle_red.png',
                                                 imageSize: 23,
-                                                color: Color(0xffD90206)),
-                                            SizedBox(width: 14),
+                                                color: const Color(0xffD90206)),
+                                            const SizedBox(width: 14),
                                             _buildRatingItem(
                                                 label: '공포도',
                                                 imagePath: review.horror == 1
                                                     ? 'assets/icon/ghost.png'
                                                     : 'assets/icon/ghost_in.png',
                                                 imageSize: 23),
-                                            SizedBox(width: 14),
+                                            const SizedBox(width: 14),
                                             _buildRatingItem(
                                                 label: '활동성',
                                                 imagePath: review.activity == 1
@@ -230,14 +230,14 @@ class _MyReviewPageState extends State<MyReviewPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Padding(
                         padding: const EdgeInsets.only(left: 2),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 15),
-                            hashtag(tags, _addTag, _removeTag),
+                            hashtag(tags, addTag, removeTag),
                             const SizedBox(height: 15),
                             const Text(
                               '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
@@ -246,7 +246,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                             ),
                           ],
                         )),
-                    SizedBox(
+                    const SizedBox(
                       height: 12,
                     ),
                     const Divider(color: Color(0xff363636)),
@@ -274,7 +274,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white70,
             fontSize: 10,
             fontWeight: FontWeight.w700,
@@ -285,7 +285,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(),
+              const SizedBox(),
               Image.asset(
                 alignment: Alignment.center,
                 imagePath,
@@ -301,7 +301,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                           fontSize: fontSize ?? 11,
                           fontWeight: FontWeight.w700),
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
             ],
           )
         else
@@ -386,10 +386,10 @@ class _MyReviewPageState extends State<MyReviewPage> {
           ],
         ),
         const SizedBox(height: 10),
-        Wrap(
+        const Wrap(
           spacing: 8,
           runSpacing: 6,
-          children: const [
+          children: [
             _Hashtag('#감성적인'),
             _Hashtag('#귀여운'),
             _Hashtag('#신비한'),

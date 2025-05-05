@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -91,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
             if (!isAutoLogin) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => AfterLogin()),
+                MaterialPageRoute(builder: (context) => const AfterLogin()),
               );
             }
           } else {
@@ -139,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
               final result = Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => KakaoLoginWebView(
+                  builder: (context) => const KakaoLoginWebView(
                     clientId: '6b4d8cc48ec73499504d519e26c84c91',
                     // redirectUri: 'http://172.18.144.123:8000/login/oauth/kakao',
                     redirectUri:

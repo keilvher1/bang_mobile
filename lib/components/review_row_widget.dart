@@ -10,7 +10,7 @@ class ReviewRowWidget extends StatelessWidget {
   final bool isClicked; // 추가
 
   const ReviewRowWidget({
-    Key? key,
+    super.key,
     this.height = 29.0,
     this.horizontalPadding = 12.0,
     this.iconSize = 24.0,
@@ -18,7 +18,7 @@ class ReviewRowWidget extends StatelessWidget {
     this.fontColor = Colors.white,
     this.fontWeight = FontWeight.normal,
     this.isClicked = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

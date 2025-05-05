@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:scrd/auth/secure_storage.dart';
-import 'package:scrd/page/after_login.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -12,7 +10,7 @@ class KakaoLoginWebView extends StatefulWidget {
   final String clientId;
   final String redirectUri;
 
-  KakaoLoginWebView({
+  const KakaoLoginWebView({super.key, 
     required this.clientId,
     required this.redirectUri,
   });
@@ -103,7 +101,7 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
 
           // 이동
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => NavPage()),
+            MaterialPageRoute(builder: (context) => const NavPage()),
             (Route<dynamic> route) => false,
           );
         } else {

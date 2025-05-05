@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:provider/provider.dart';
-import 'package:scrd/page/home_page.dart';
-import 'package:scrd/page/main_page.dart';
 import 'package:scrd/page/my_saved_page.dart';
-import 'package:scrd/page/nav_page.dart';
-import 'package:scrd/page/save_page.dart';
 import 'package:scrd/page/tier_page.dart';
-import 'package:scrd/provider/navigation_provider.dart';
 
-import '../auth/login.dart';
 import 'my_reply_page.dart';
 
 class AfterLogin extends StatefulWidget {
-  const AfterLogin({Key? key}) : super(key: key);
+  const AfterLogin({super.key});
 
   @override
   State<AfterLogin> createState() => _AfterLoginState();
@@ -55,7 +48,7 @@ class _AfterLoginState extends State<AfterLogin> {
                     //   MaterialPageRoute(builder: (context) => TierPage()),
                     // );
                   },
-                  child: Text(
+                  child: const Text(
                     "THERE'S THE\nSCARLET THREAD OF MURDER\nRUNNING THROUGH THE\nCOLOURLESS SKEIN OF LIFE",
                     style: TextStyle(
                       color: Colors.white,
@@ -164,7 +157,7 @@ class _AfterLoginState extends State<AfterLogin> {
                 setState(() {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => TierPage()),
+                    MaterialPageRoute(builder: (context) => const TierPage()),
                   );
                 });
               },
@@ -175,7 +168,7 @@ class _AfterLoginState extends State<AfterLogin> {
                   borderRadius: BorderRadius.circular(40),
                 ),
                 alignment: Alignment.center,
-                child: Text(
+                child: const Text(
                   "TIER",
                   style: TextStyle(
                     color: Colors.white,
@@ -201,7 +194,7 @@ class _AfterLoginState extends State<AfterLogin> {
                   borderRadius: BorderRadius.circular(40),
                 ),
                 alignment: Alignment.center,
-                child: Text(
+                child: const Text(
                   "HOLMES (59)",
                   style: TextStyle(
                     color: Colors.black,
@@ -223,7 +216,7 @@ class _AfterLoginState extends State<AfterLogin> {
     required String gifAsset,
     required List<Map<String, VoidCallback>> menuItems,
   }) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 140, // 원하는 높이
       child: ClipRRect(

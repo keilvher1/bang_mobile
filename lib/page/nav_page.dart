@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:scrd/page/after_login.dart';
 import 'package:scrd/page/find_group_page.dart';
 import 'package:scrd/page/home_page.dart';
-import 'package:scrd/page/my_saved_page.dart';
 import 'package:scrd/page/notification.dart';
-import 'package:scrd/page/save_page.dart';
 import 'package:scrd/page/search_theme.dart';
 import 'package:scrd/page/upload_page.dart';
 
@@ -25,14 +23,14 @@ class _HomePageState extends State<NavPage> {
       CarouselSliderController();
 
   final List<Widget> _pages = [
-    DateGridPage(),
-    FindGroupPage(),
-    UploadPage(
+    const DateGridPage(),
+    const FindGroupPage(),
+    const UploadPage(
       isReviewMode: false,
     ),
     // MySavedPage(),
-    NotificationPage(),
-    AfterLogin(),
+    const NotificationPage(),
+    const AfterLogin(),
   ];
 
   @override
@@ -52,7 +50,7 @@ class _HomePageState extends State<NavPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    SizedBox(width: 29),
+                    const SizedBox(width: 29),
                     // Image.asset('assets/icon/Logo_Bold.svg'),
                     SvgPicture.asset(
                       // 'assets/icon/Logo_Bold1.svg',
@@ -86,7 +84,7 @@ class _HomePageState extends State<NavPage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => SearchThemePage()),
+                      MaterialPageRoute(builder: (_) => const SearchThemePage()),
                     );
                   },
                 ),
@@ -99,7 +97,7 @@ class _HomePageState extends State<NavPage> {
                 //     color: Colors.white,
                 //   ),
                 // ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
               ],
             )
           : null,
@@ -119,7 +117,7 @@ class _HomePageState extends State<NavPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => UploadPage(
+                    builder: (_) => const UploadPage(
                           isReviewMode: false,
                         )),
               );
@@ -165,8 +163,8 @@ class _HomePageState extends State<NavPage> {
               label: '',
             ),
           ],
-          backgroundColor: Color(0xff131313),
-          selectedItemColor: Color(0xffD90206),
+          backgroundColor: const Color(0xff131313),
+          selectedItemColor: const Color(0xffD90206),
           unselectedItemColor: Colors.white,
           type: BottomNavigationBarType.fixed,
         ),

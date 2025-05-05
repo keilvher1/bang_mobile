@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TierPage extends StatefulWidget {
+  const TierPage({super.key});
+
   @override
   _TierPageState createState() => _TierPageState();
 }
@@ -22,9 +24,9 @@ class _TierPageState extends State<TierPage> {
       backgroundColor: Colors.black,
       body: Column(
         children: [
-          SizedBox(height: 60),
+          const SizedBox(height: 60),
           Align(
-            alignment: Alignment(-0.25, 0),
+            alignment: const Alignment(-0.25, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -32,7 +34,7 @@ class _TierPageState extends State<TierPage> {
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Text(
+                  child: const Text(
                     "WHAT\nTIE_R\nU?",
                     textAlign: TextAlign.left,
                     style: TextStyle(
@@ -44,7 +46,7 @@ class _TierPageState extends State<TierPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
@@ -52,11 +54,11 @@ class _TierPageState extends State<TierPage> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
+                      side: const BorderSide(
                           color: Colors.white, width: 2), // 흰색 테두리 추가
                     ),
                   ),
-                  child: Text("HOLMES (259)",
+                  child: const Text("HOLMES (259)",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -66,7 +68,7 @@ class _TierPageState extends State<TierPage> {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Expanded(
             child: PageView.builder(
               controller: _pageController,
@@ -80,7 +82,7 @@ class _TierPageState extends State<TierPage> {
                 final isActive = pageIndex == _currentPage;
 
                 return AnimatedContainer(
-                  duration: Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 300),
                   margin: EdgeInsets.symmetric(
                       horizontal: 10, vertical: isActive ? 0 : 20),
                   decoration: BoxDecoration(
@@ -118,15 +120,15 @@ class _TierPageState extends State<TierPage> {
                                 Text(
                                   pages[pageIndex]["title"]!,
                                   textAlign: TextAlign.left,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 40,
                                     fontWeight: FontWeight.w600,
                                     fontFamily: 'NeueHaasDisplay',
                                   ),
                                 ),
-                                SizedBox(height: 30),
-                                Text(
+                                const SizedBox(height: 30),
+                                const Text(
                                   "Number Of\nRooms Escaped",
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
@@ -136,10 +138,10 @@ class _TierPageState extends State<TierPage> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                SizedBox(height: 25),
+                                const SizedBox(height: 25),
                                 Text(
                                   pages[pageIndex]["description"]!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 27,
                                     fontWeight: FontWeight.w600,

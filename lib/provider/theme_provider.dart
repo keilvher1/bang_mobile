@@ -13,7 +13,7 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners(); // 필요한 경우
   }
 
-  List<dynamic> _themes = [];
+  final List<dynamic> _themes = [];
   int _currentPage = 0;
   final int _pageSize = 104;
   bool _isLoading = false;

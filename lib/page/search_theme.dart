@@ -8,7 +8,7 @@ import '../provider/select_theme_provider.dart';
 import '../utils/api_server.dart';
 
 class SearchThemePage extends StatefulWidget {
-  const SearchThemePage({Key? key}) : super(key: key);
+  const SearchThemePage({super.key});
 
   @override
   State<SearchThemePage> createState() => _SearchThemePageState();
@@ -17,7 +17,7 @@ class SearchThemePage extends StatefulWidget {
 class _SearchThemePageState extends State<SearchThemePage> {
   final TextEditingController _searchController = TextEditingController();
   List<ThemeModel> _searchResults = [];
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   Timer? _debounce;
 
@@ -76,14 +76,14 @@ class _SearchThemePageState extends State<SearchThemePage> {
                   fontWeight: FontWeight.w600,
                   height: 1.75,
                 ),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(
                     Icons.search,
                     color: Color(0xffA1A1A1),
                     size: 19,
                   ), // 🔍 앞쪽 아이콘
                   hintText: '검색어를 입력하세요',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: Colors.white54,
                     fontWeight: FontWeight.w500,
                   ),

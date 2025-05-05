@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AnimationPage extends StatefulWidget {
   final VoidCallback onFinish;
 
-  const AnimationPage({Key? key, required this.onFinish}) : super(key: key);
+  const AnimationPage({super.key, required this.onFinish});
 
   @override
   _AnimationPageState createState() => _AnimationPageState();
@@ -157,34 +157,34 @@ class _AnimationPageState extends State<AnimationPage>
           Container(
             width: size,
             height: size * 1.4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFD90206), // 빨간색 배경
+            decoration: const BoxDecoration(
+              color: Color(0xFFD90206), // 빨간색 배경
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xFFD90206),
+                color: const Color(0xFFD90206),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
-                    offset: Offset(5, 5), // 그림자 위치
+                    offset: const Offset(5, 5), // 그림자 위치
                     blurRadius: 15,
                     spreadRadius: -5, // 그림자 확산 조정
                   ),
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
-                    offset: Offset(0, 5), // 그림자 위치
+                    offset: const Offset(0, 5), // 그림자 위치
                     blurRadius: 15,
                     spreadRadius: -5, // 그림자 확산 조정
                   ),
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
-                    offset: Offset(5, 0), // 그림자 위치
+                    offset: const Offset(5, 0), // 그림자 위치
                     blurRadius: 15,
                     spreadRadius: -5, // 그림자 확산 조정
                   ),
                   BoxShadow(
                     color: Colors.black.withOpacity(0.6),
-                    offset: Offset(0, 0), // 그림자 위치
+                    offset: const Offset(0, 0), // 그림자 위치
                     blurRadius: 15,
                     spreadRadius: -5, // 그림자 확산 조정
                   ),

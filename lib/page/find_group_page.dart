@@ -1,23 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:scrd/page/recruit_detail_page.dart';
 
 import '../components/buttons.dart';
+import '../model/party.dart';
+import '../provider/party_provider.dart';
 
 class FindGroupPage extends StatefulWidget {
-  const FindGroupPage({Key? key}) : super(key: key);
+  const FindGroupPage({super.key});
 
   @override
   _FindGroupPageState createState() => _FindGroupPageState();
 }
 
 class _FindGroupPageState extends State<FindGroupPage> {
-  final Color red = Color(0xffD90206);
+  final Color red = const Color(0xffD90206);
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   bool checkedRecruit = false;
 
   bool get _dateSelected => selectedDate != null;
+  late PartyProvider _partyProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PartyProvider>(context, listen: false).fetchInitialParties();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,31 +38,64 @@ class _FindGroupPageState extends State<FindGroupPage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           '일행 찾기',
           style: TextStyle(
               color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSearchBar(),
-            const SizedBox(height: 16),
-            _buildFilterRow(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: 4,
-                itemBuilder: (context, index) {
-                  return _buildGroupCard();
-                },
-              ),
-            )
-          ],
-        ),
+      body: Consumer<PartyProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.parties.isEmpty) {
+            return const Center(child: Text("모집글이 없습니다."));
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                _buildFilterRow(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: provider.parties.length,
+                    itemBuilder: (context, index) {
+                      final party = provider.parties[index];
+                      return _buildGroupCard(party);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        // child: Padding(
+        //   padding: const EdgeInsets.all(16.0),
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: [
+        //       _buildSearchBar(),
+        //       const SizedBox(height: 16),
+        //       _buildFilterRow(),
+        //       const SizedBox(height: 16),
+        //       Expanded(
+        //         child: ListView.builder(
+        //           itemCount: 4,
+        //           itemBuilder: (context, index) {
+        //             return _buildGroupCard();
+        //           },
+        //         ),
+        //       )
+        //     ],
+        //   ),
+        // ),
       ),
     );
   }
@@ -58,13 +103,13 @@ class _FindGroupPageState extends State<FindGroupPage> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFF121212),
+        color: const Color(0xFF121212),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
+      child: const Row(
         children: [
-          const Expanded(
+          Expanded(
             child: TextField(
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -87,7 +132,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
       backgroundColor: Colors.transparent,
       builder: (_) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -100,7 +145,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
                           SizedBox(width: 12),
                           Text("날짜",
@@ -111,9 +156,9 @@ class _FindGroupPageState extends State<FindGroupPage> {
                         ],
                       ),
                       IconButton(
-                        padding: EdgeInsets.only(bottom: 20, right: 25),
-                        icon: Icon(Icons.close, color: Colors.white),
-                        alignment: Alignment(-1, 1),
+                        padding: const EdgeInsets.only(bottom: 20, right: 25),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        alignment: const Alignment(-1, 1),
                         onPressed: () => Navigator.pop(context),
                       )
                     ],
@@ -131,16 +176,16 @@ class _FindGroupPageState extends State<FindGroupPage> {
                   ),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.center,
                     color: selectedDate != null
-                        ? Color(0xffD90206)
-                        : Color(0xff515151),
+                        ? const Color(0xffD90206)
+                        : const Color(0xff515151),
                     child: GestureDetector(
                       onTap: selectedDate != null
                           ? () => Navigator.pop(context)
                           : null,
-                      child: Text('선택 완료',
+                      child: const Text('선택 완료',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
@@ -192,7 +237,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
           Container(
             width: 1,
             height: 16,
-            decoration: BoxDecoration(color: const Color(0xFF3F3F3F)),
+            decoration: const BoxDecoration(color: Color(0xFF3F3F3F)),
           ),
           const SizedBox(width: 12),
           GestureDetector(
@@ -200,7 +245,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
               showDatePickerBottomSheet(context);
             },
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               height: 26,
               decoration: ShapeDecoration(
                 color: const Color(0xFF1B1B1B),
@@ -208,7 +253,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
                   side: BorderSide(
                     width: 1,
                     color: selectedDate != null
-                        ? Color(0xffD90206)
+                        ? const Color(0xffD90206)
                         : const Color(0xFF1F1F1F),
                   ),
                   borderRadius: BorderRadius.circular(20),
@@ -229,7 +274,8 @@ class _FindGroupPageState extends State<FindGroupPage> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Icon(Icons.arrow_drop_down, color: Colors.white, size: 15)
+                  const Icon(Icons.arrow_drop_down,
+                      color: Colors.white, size: 15)
                 ],
               ),
             ),
@@ -246,10 +292,10 @@ class _FindGroupPageState extends State<FindGroupPage> {
           width: 18,
           height: 18,
           decoration: BoxDecoration(
-            color: isChecked ? red : Color(0xff4A4A4A),
+            color: isChecked ? red : const Color(0xff4A4A4A),
             shape: BoxShape.circle,
           ),
-          child: Center(
+          child: const Center(
             child: Icon(
               Icons.check,
               color: Colors.white,
@@ -260,8 +306,8 @@ class _FindGroupPageState extends State<FindGroupPage> {
         const SizedBox(width: 6),
         Text(
           label,
-          style: TextStyle(
-            color: const Color(0xFFD1D1D1),
+          style: const TextStyle(
+            color: Color(0xFFD1D1D1),
             fontSize: 14,
             fontFamily: 'Inter',
             fontWeight: FontWeight.w600,
@@ -272,18 +318,21 @@ class _FindGroupPageState extends State<FindGroupPage> {
     );
   }
 
-  Widget _buildGroupCard() {
+  Widget _buildGroupCard(Party party) {
+    final formattedDate = DateFormat('M월 d일(E) HH:mm', 'ko_KR')
+        .format(party.deadline); // DateTime -> 원하는 형식의 문자열
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => RecruitDetailPage()),
+          MaterialPageRoute(
+              builder: (_) => RecruitDetailPage(partyId: party.id)),
         );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        padding:
-            const EdgeInsets.only(left: 10, top: 17, bottom: 17, right: 10),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: const Color(0xff131313),
           borderRadius: BorderRadius.circular(5),
@@ -294,22 +343,14 @@ class _FindGroupPageState extends State<FindGroupPage> {
           children: [
             Stack(
               children: [
-                Container(
+                SizedBox(
                   width: 119,
                   height: 146,
-                  child: Image.network(
-                    'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
-                    fit: BoxFit.cover,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0),
-                        Colors.black.withOpacity(0.5),
-                        Colors.black.withOpacity(0.8),
-                      ],
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: Image.network(
+                      party.image,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -318,7 +359,7 @@ class _FindGroupPageState extends State<FindGroupPage> {
                   left: 0,
                   right: 0,
                   child: Container(
-                    height: 161 * 0.2,
+                    height: 146 * 0.2,
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(8),
@@ -344,13 +385,12 @@ class _FindGroupPageState extends State<FindGroupPage> {
                 padding: const EdgeInsets.symmetric(vertical: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      '3시 30분 상자 하실분 구해요 ~ 난이도 어려운 만큼 30방 이상만 !!',
+                      party.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -365,43 +405,53 @@ class _FindGroupPageState extends State<FindGroupPage> {
                           height: 13,
                         ),
                         const SizedBox(width: 6),
-                        Text('머니머니부동산',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 11)),
+                        Text(
+                          party.themeTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
                     Row(
                       children: [
-                        Icon(Icons.location_on,
+                        const Icon(Icons.location_on,
                             color: Colors.white54, size: 14),
                         const SizedBox(width: 6),
-                        Text('강남',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 11)),
+                        Text(
+                          party.location,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.calendar_today,
+                                const Icon(Icons.calendar_today,
                                     color: Color(0xff9D9D9D), size: 12),
                                 const SizedBox(width: 6),
-                                Text('3월 23일(일) 14:20',
-                                    style: TextStyle(color: red, fontSize: 11)),
+                                Text(
+                                  formattedDate,
+                                  style: const TextStyle(
+                                    color: Color(0xFFD90206),
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 5),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Image.asset(
                                   'assets/icon/people.png',
@@ -409,34 +459,39 @@ class _FindGroupPageState extends State<FindGroupPage> {
                                   height: 12,
                                 ),
                                 const SizedBox(width: 6),
-                                Text('1 ',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 11)),
-                                Text('/ 4인',
-                                    style: TextStyle(
-                                        color: Colors.white70, fontSize: 11)),
+                                Text(
+                                  '${party.currentParticipants} ',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 11),
+                                ),
+                                Text(
+                                  '/ ${party.maxParticipants}인',
+                                  style: const TextStyle(
+                                      color: Colors.white70, fontSize: 11),
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                         Container(
                           width: 63,
                           height: 26,
                           decoration: ShapeDecoration(
-                            color: const Color(0xFFD90206) /* red-6 */,
+                            color: const Color(0xFFD90206),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5)),
-                          ),
-                          child: Center(
-                              child: Text(
-                            '신청하기',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w600,
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                          )),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              '신청하기',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),

@@ -8,13 +8,13 @@ class RatingItemWidget extends StatefulWidget {
   final String? subText;
 
   const RatingItemWidget({
-    Key? key,
+    super.key,
     required this.label,
     this.imagePath,
     this.color,
     this.value,
     this.subText,
-  }) : super(key: key);
+  });
 
   @override
   _RatingItemWidgetState createState() => _RatingItemWidgetState();

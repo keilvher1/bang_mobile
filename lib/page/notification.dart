@@ -205,16 +205,16 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Row(
+          const Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text('1일 전',
+              Text('1일 전',
                   style: TextStyle(
                       color: Colors.white38,
                       fontSize: 10,
                       fontWeight: FontWeight.w300)),
-              const SizedBox(height: 6),
-              const Icon(Icons.more_vert, color: Colors.white, size: 18),
+              SizedBox(height: 6),
+              Icon(Icons.more_vert, color: Colors.white, size: 18),
             ],
           ),
         ],
@@ -227,13 +227,12 @@ class _NotificationPageState extends State<NotificationPage> {
     required String title,
     required String boldText,
     required String description,
-    String? image,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xff131313),
+      decoration: const BoxDecoration(
+        color: Color(0xff131313),
         // borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -277,16 +276,16 @@ class _NotificationPageState extends State<NotificationPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Row(
+              const Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text('1일 전',
+                  Text('1일 전',
                       style: TextStyle(
                           color: Colors.white38,
                           fontSize: 10,
                           fontWeight: FontWeight.w300)),
-                  const SizedBox(height: 6),
-                  const Icon(Icons.more_vert, color: Colors.white, size: 18),
+                  SizedBox(height: 6),
+                  Icon(Icons.more_vert, color: Colors.white, size: 18),
                 ],
               ),
             ],
@@ -327,7 +326,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     child: Text(
                   '거절하기',
                   style: TextStyle(
-                    color: const Color(0xFF9D9D9D),
+                    color: Color(0xFF9D9D9D),
                     fontSize: 11,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w700,

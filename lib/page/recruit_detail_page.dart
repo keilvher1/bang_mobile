@@ -1,12 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:scrd/model/partyDetail.dart';
+import 'package:scrd/utils/api_server.dart';
+import 'package:scrd/utils/endpoint.dart';
 
-class RecruitDetailPage extends StatelessWidget {
-  final bool hasComments;
+import '../model/party_comment.dart';
+import '../provider/party_comment_provider.dart';
+import '../provider/party_detail_provider.dart';
 
-  RecruitDetailPage({this.hasComments = false});
+class RecruitDetailPage extends StatefulWidget {
+  final int partyId;
+
+  const RecruitDetailPage({Key? key, required this.partyId}) : super(key: key);
+
+  @override
+  State<RecruitDetailPage> createState() => _RecruitDetailPageState();
+}
+
+class _RecruitDetailPageState extends State<RecruitDetailPage> {
+  final bool hasComments = false;
+  TextEditingController _commentController = TextEditingController();
+  int? _parentCommentId; // null이면 일반 댓글
+  int? replyingToCommentId; // 대댓글 대상 ID (없으면 null)
+  //RecruitDetailPage({super.key, this.hasComments = false});
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final provider = Provider.of<PartyDetailProvider>(context, listen: false);
+      provider.fetchPartyDetail(widget.partyId);
+      Provider.of<PartyCommentProvider>(context, listen: false)
+          .fetchComments(widget.partyId); //
+    });
+  }
+
+  String _getTimeAgoText(String regDateString) {
+    try {
+      final regDate = DateTime.parse(regDateString);
+      final now = DateTime.now();
+      final difference = now.difference(regDate);
+
+      if (difference.inDays >= 1) {
+        return '${difference.inDays}일 전';
+      } else if (difference.inHours >= 1) {
+        return '${difference.inHours}시간 전';
+      } else if (difference.inMinutes >= 1) {
+        return '${difference.inMinutes}분 전';
+      } else {
+        return '방금 전';
+      }
+    } catch (e) {
+      return ''; // 변환 실패 시 빈 문자열 처리
+    }
+  }
+
+  String _formatDeadline(String deadlineString) {
+    try {
+      final deadline = DateTime.parse(deadlineString);
+      final formatter = DateFormat('M월 d일(E) HH:mm', 'ko_KR');
+      return formatter.format(deadline);
+    } catch (e) {
+      return ''; // 실패 시 빈 문자열
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<PartyDetailProvider>(context);
+    final detail = provider.party;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -16,10 +78,10 @@ class RecruitDetailPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
-            Text(
+            const Text(
               '일행 찾기',
               style: TextStyle(
                 color: Colors.white,
@@ -33,7 +95,7 @@ class RecruitDetailPage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             onPressed: () {},
           )
         ],
@@ -60,23 +122,23 @@ class RecruitDetailPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '우당탕탕 탕구리',
+                            detail!.writerNickname.toString(),
                             style: TextStyle(
-                              color: const Color(0xFFFFF8F8),
+                              color: Color(0xFFFFF8F8),
                               fontSize: 12,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
-                            '1일 전',
-                            style: TextStyle(
-                              color: const Color(0xFF878787),
+                            _getTimeAgoText(detail.regDate),
+                            style: const TextStyle(
+                              color: Color(0xFF878787),
                               fontSize: 10,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
@@ -88,11 +150,11 @@ class RecruitDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding: EdgeInsets.only(left: 8.0),
                   child: Text(
-                    '3시 30분 상자 하실분 구해요 ~ 난이도 어려운 만큼 30방 이상만 !!',
+                    detail.title,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
@@ -102,9 +164,9 @@ class RecruitDetailPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding: EdgeInsets.only(left: 8.0),
                   child: Row(
                     children: [
                       Text('날짜 ',
@@ -113,9 +175,9 @@ class RecruitDetailPage extends StatelessWidget {
                         width: 10,
                       ),
                       Text(
-                        '3월 23일(일) 14:20',
-                        style: TextStyle(
-                          color: const Color(0xFFB80205),
+                        _formatDeadline(detail.deadline),
+                        style: const TextStyle(
+                          color: Color(0xFFB80205),
                           fontSize: 13,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
@@ -124,9 +186,9 @@ class RecruitDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding: EdgeInsets.only(left: 8.0),
                   child: Row(
                     children: [
                       Text('인원 ',
@@ -138,7 +200,7 @@ class RecruitDetailPage extends StatelessWidget {
                         TextSpan(
                           children: [
                             TextSpan(
-                              text: '1',
+                              text: detail.currentParticipants.toString(),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
@@ -149,16 +211,16 @@ class RecruitDetailPage extends StatelessWidget {
                             TextSpan(
                               text: ' ',
                               style: TextStyle(
-                                color: const Color(0xFF9D9D9D),
+                                color: Color(0xFF9D9D9D),
                                 fontSize: 13,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             TextSpan(
-                              text: '/ 4인',
+                              text: '/ ${detail.maxParticipants}인',
                               style: TextStyle(
-                                color: const Color(0xFFA3A3A3),
+                                color: Color(0xFFA3A3A3),
                                 fontSize: 13,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w600,
@@ -170,19 +232,19 @@ class RecruitDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Text('1인에서 2인 구합니다 20대 남성 분만 구해요 !!',
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Text(detail.content,
                       style: TextStyle(color: Colors.white, fontSize: 14)),
                 ),
-                SizedBox(height: 97),
-                Divider(
-                  color: const Color(0xFF363131),
+                const SizedBox(height: 97),
+                const Divider(
+                  color: Color(0xFF363131),
                 ),
-                SizedBox(height: 10),
-                _buildThemeCard(),
-                SizedBox(height: 15),
+                const SizedBox(height: 10),
+                _buildThemeCard(detail!),
+                const SizedBox(height: 15),
                 Container(
                   width: 344,
                   height: 36,
@@ -191,7 +253,7 @@ class RecruitDetailPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5)),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       '신청하기',
                       style: TextStyle(
@@ -203,17 +265,17 @@ class RecruitDetailPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 10),
-                Divider(
-                  color: const Color(0xFF181818),
+                const SizedBox(height: 10),
+                const Divider(
+                  color: Color(0xFF181818),
                   thickness: 6,
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Container(
-                  padding: EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: 8),
                   width: 42,
                   height: 30,
-                  child: Stack(
+                  child: const Stack(
                     children: [
                       Positioned(
                         left: 35,
@@ -224,7 +286,7 @@ class RecruitDetailPage extends StatelessWidget {
                           child: Text(
                             '2',
                             style: TextStyle(
-                              color: const Color(0xFFA3A3A3),
+                              color: Color(0xFFA3A3A3),
                               fontSize: 10,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w600,
@@ -251,51 +313,58 @@ class RecruitDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 12),
-                if (!hasComments)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 54,
-                      ),
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(),
-                        child: Image.asset('assets/icon/textballoon.png'),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        '첫 번째 코멘트를 남겨 보세요!',
-                        style: TextStyle(
-                          color: const Color(0xFFB9B9B9),
-                          fontSize: 10,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(
-                        height: 40,
-                      )
-                    ],
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildComment(
-                          name: '우당탕탕 탕구리',
-                          time: '1일 전',
-                          text: '안녕하세요, 10방 정도해본 방린이도 가능한가요?'),
-                      _buildComment(
-                          name: '한 대 피카츄',
-                          time: '1일 전',
-                          text: '아뇨 죄송요.',
-                          isReply: true)
-                    ],
-                  ),
+                const SizedBox(height: 12),
+                Consumer<PartyCommentProvider>(
+                  builder: (context, provider, _) {
+                    if (provider.isLoading) return CircularProgressIndicator();
+                    if (provider.comments.isEmpty) return Text("댓글이 없습니다.");
+                    return _buildComments(provider.comments);
+                  },
+                ),
+                // if (!hasComments)
+                //   Column(
+                //     mainAxisAlignment: MainAxisAlignment.center,
+                //     crossAxisAlignment: CrossAxisAlignment.center,
+                //     children: [
+                //       const SizedBox(
+                //         height: 54,
+                //       ),
+                //       Container(
+                //         width: 60,
+                //         height: 60,
+                //         decoration: const BoxDecoration(),
+                //         child: Image.asset('assets/icon/textballoon.png'),
+                //       ),
+                //       const SizedBox(height: 8),
+                //       const Text(
+                //         '첫 번째 코멘트를 남겨 보세요!',
+                //         style: TextStyle(
+                //           color: Color(0xFFB9B9B9),
+                //           fontSize: 10,
+                //           fontFamily: 'Inter',
+                //           fontWeight: FontWeight.w700,
+                //         ),
+                //       ),
+                //       const SizedBox(
+                //         height: 40,
+                //       )
+                //     ],
+                //   )
+                // else
+                //   Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       _buildComment(
+                //           name: '우당탕탕 탕구리',
+                //           time: '1일 전',
+                //           text: '안녕하세요, 10방 정도해본 방린이도 가능한가요?'),
+                //       _buildComment(
+                //           name: '한 대 피카츄',
+                //           time: '1일 전',
+                //           text: '아뇨 죄송요.',
+                //           isReply: true)
+                //     ],
+                //   ),
               ],
             ),
           ),
@@ -305,7 +374,7 @@ class RecruitDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeCard() {
+  Widget _buildThemeCard(PartyDetail detail) {
     return Container(
       decoration: BoxDecoration(
         // color: Color(0xff1E1E1E),
@@ -314,21 +383,22 @@ class RecruitDetailPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Image.network(
-            'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+            // 'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
+            detail.themeImage,
             width: 110,
             height: 120,
             fit: BoxFit.cover,
           ),
-          SizedBox(width: 30),
+          const SizedBox(width: 30),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '머니머니부동산',
+                  detail.themeTitle,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -336,19 +406,19 @@ class RecruitDetailPage extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 2,
                 ),
                 Text(
-                  '키이스케이프  |  스테이션점',
+                  "${detail.brand} | ${detail.branch}",
                   style: TextStyle(
-                    color: const Color(0xFFB9B9B9),
+                    color: Color(0xFFB9B9B9),
                     fontSize: 9,
                     fontFamily: 'Pretendard',
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 5,
                 ),
                 Row(
@@ -361,25 +431,25 @@ class RecruitDetailPage extends StatelessWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20)),
                         child: Text(
-                          '강남',
+                          detail.location,
                           style: TextStyle(
                               color: Colors.black,
                               fontSize: 9,
                               fontWeight: FontWeight.w700),
                         ),
                       ),
-                      SizedBox(width: 8),
-                      Icon(Icons.watch_later_outlined,
+                      const SizedBox(width: 8),
+                      const Icon(Icons.watch_later_outlined,
                           color: Colors.white, size: 16),
-                      SizedBox(width: 3),
+                      const SizedBox(width: 3),
                       Text(
-                        '80분',
+                        '${detail.playTime}분',
                         style: TextStyle(color: Colors.white, fontSize: 10),
                       ),
                     ]),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 // Text(
                 //   '30,000 원',
                 //   style: TextStyle(
@@ -389,30 +459,34 @@ class RecruitDetailPage extends StatelessWidget {
                 //     fontWeight: FontWeight.w700,
                 //   ),
                 // ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildRatingItem(
                         label: '난이도',
-                        value: '5',
+                        value: detail.level.toStringAsFixed(0),
                         imagePath: 'assets/icon/puzzle_red.png',
                         titleSize: 9,
                         imageSize: 19,
                         fontSize: 9,
                         color: Color(0xffD90206)),
-                    SizedBox(width: 14),
+                    const SizedBox(width: 14),
                     _buildRatingItem(
                         titleSize: 9,
                         label: '공포도',
-                        imagePath: 'assets/icon/ghost.png',
+                        imagePath: detail.horror == 0
+                            ? 'assets/icon/ghost_in.png'
+                            : 'assets/icon/ghost.png',
                         fontSize: 10,
                         imageSize: 19),
-                    SizedBox(width: 14),
+                    const SizedBox(width: 14),
                     _buildRatingItem(
                         titleSize: 9,
                         label: '활동성',
-                        imagePath: 'assets/icon/shoe_in.png',
+                        imagePath: detail.activity == 0
+                            ? 'assets/icon/shoe_in.png'
+                            : 'assets/icon/shoe.png',
                         fontSize: 10,
                         imageSize: 19),
                   ],
@@ -422,7 +496,7 @@ class RecruitDetailPage extends StatelessWidget {
           ),
           IconButton(
               onPressed: () {},
-              icon: Icon(
+              icon: const Icon(
                 Icons.chevron_right,
                 color: Colors.white,
                 size: 25,
@@ -458,7 +532,7 @@ class RecruitDetailPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(),
+              const SizedBox(),
               Image.asset(
                 alignment: Alignment.center,
                 imagePath,
@@ -474,7 +548,7 @@ class RecruitDetailPage extends StatelessWidget {
                           fontSize: fontSize ?? 11,
                           fontWeight: FontWeight.w700),
                     )
-                  : SizedBox(),
+                  : const SizedBox(),
             ],
           )
         else
@@ -511,13 +585,47 @@ class RecruitDetailPage extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 14, color: iconColor),
-        SizedBox(width: 4),
-        Text(text, style: TextStyle(color: Colors.white, fontSize: 11))
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(color: Colors.white, fontSize: 11))
       ],
     );
   }
 
+  Widget _buildComments(List<PartyComment> comments, {bool isReply = false}) {
+    return Column(
+      children: comments.map((comment) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildComment(
+              name: comment.writerName,
+              time: _formatRelativeTime(comment.regDate),
+              text: comment.content,
+              comment: comment,
+              isReply: isReply,
+            ),
+            if (comment.children.isNotEmpty)
+              _buildComments(comment.children, isReply: true),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  String _formatRelativeTime(String regDateStr) {
+    final now = DateTime.now();
+    final regDate = DateTime.parse(regDateStr);
+    final diff = now.difference(regDate);
+
+    if (diff.inSeconds < 60) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    return DateFormat('M월 d일').format(regDate);
+  }
+
   Widget _buildComment({
+    required PartyComment comment,
     required String name,
     required String time,
     required String text,
@@ -542,7 +650,7 @@ class RecruitDetailPage extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 width: 15,
               ),
               Column(
@@ -553,20 +661,20 @@ class RecruitDetailPage extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: TextStyle(
-                          color: const Color(0xFFFFF8F8),
+                        style: const TextStyle(
+                          color: Color(0xFFFFF8F8),
                           fontSize: 11,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 7,
                       ),
                       Text(
                         time,
-                        style: TextStyle(
-                          color: const Color(0xFF878787),
+                        style: const TextStyle(
+                          color: Color(0xFF878787),
                           fontSize: 9,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
@@ -574,29 +682,40 @@ class RecruitDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        text,
-                        style: TextStyle(
-                          color: const Color(0xFFD2D2D2),
-                          fontSize: 10,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
+                      SizedBox(
+                        width: 130,
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            color: Color(0xFFD2D2D2),
+                            fontSize: 10,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 30,
                       ),
-                      Text(
-                        '답글 달기',
-                        style: TextStyle(
-                          color: const Color(0xFFA3A3A3),
-                          fontSize: 8,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            replyingToCommentId = comment.id; // 대댓글 대상 설정
+                          });
+                        },
+                        child: const Text(
+                          '답글 달기',
+                          style: TextStyle(
+                            color: Color(0xFFA3A3A3),
+                            fontSize: 8,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       )
                     ],
@@ -605,10 +724,21 @@ class RecruitDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          Icon(
-            Icons.more_vert,
-            color: Color(0xff878787),
-            size: 20,
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'delete') {
+                Provider.of<PartyCommentProvider>(context, listen: false)
+                    .deleteComment(comment.id);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('삭제'),
+              ),
+            ],
+            icon:
+                const Icon(Icons.more_vert, color: Color(0xff878787), size: 20),
           ),
         ],
       ),
@@ -624,18 +754,19 @@ class RecruitDetailPage extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xff1E1E1E),
+                color: const Color(0xff1E1E1E),
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: TextField(
-                style: TextStyle(
-                  color: const Color(0xFFA0A0A0),
+                controller: _commentController,
+                style: const TextStyle(
+                  color: Color(0xFFA0A0A0),
                   fontSize: 10,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
                 ),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: '댓글을 남겨 자세한 사항을 물어보세요!',
                   hintStyle: TextStyle(color: Colors.white38),
@@ -643,10 +774,31 @@ class RecruitDetailPage extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.send, color: Colors.white38),
-            onPressed: () {},
+            icon: const Icon(Icons.send, color: Colors.white38),
+            onPressed: () async {
+              final content = _commentController.text.trim();
+              if (content.isEmpty) return;
+
+              final provider =
+                  Provider.of<PartyCommentProvider>(context, listen: false);
+              final success = await provider.postComment(
+                postId: widget.partyId,
+                content: content,
+                parentId: replyingToCommentId,
+              );
+
+              if (success) {
+                _commentController.clear();
+                replyingToCommentId = null;
+                await provider.fetchComments(widget.partyId);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("댓글 등록에 실패했습니다.")),
+                );
+              }
+            },
           )
         ],
       ),

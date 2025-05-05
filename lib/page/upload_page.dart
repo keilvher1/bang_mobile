@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/model/upload_party.dart';
 import 'package:scrd/page/search_theme.dart';
-import 'package:time_picker_spinner/time_picker_spinner.dart';
 import '../components/buttons.dart';
 import '../model/review_upload.dart';
-import '../model/theme.dart';
 import '../provider/select_theme_provider.dart';
 import '../provider/upload_provider.dart';
 
@@ -15,9 +12,9 @@ class UploadPage extends StatefulWidget {
   final bool isReviewMode;
 
   const UploadPage({
-    Key? key,
+    super.key,
     required this.isReviewMode,
-  }) : super(key: key);
+  });
 
   @override
   State<UploadPage> createState() => _UploadPageState();
@@ -39,7 +36,7 @@ class _UploadPageState extends State<UploadPage> {
   int puzzleLevel = 0;
   bool isDatePicked = false; //캘린더 날짜 선택 여부
   bool isTapped = false;
-  Color red = Color(0xFFD90206);
+  Color red = const Color(0xFFD90206);
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
   late SelectThemeProvider _selectThemeProvider;
@@ -190,7 +187,7 @@ class _UploadPageState extends State<UploadPage> {
                         .clearSelectedTheme();
                     Navigator.of(context).pop();
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.arrow_back,
                     color: Colors.white,
                   )),
@@ -204,13 +201,13 @@ class _UploadPageState extends State<UploadPage> {
                 child: Text(
                   "일행 모집",
                   style: TextStyle(
-                    color: isRecruitment ? Color(0xFFD90206) : Colors.white,
+                    color: isRecruitment ? const Color(0xFFD90206) : Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              SizedBox(width: 13),
+              const SizedBox(width: 13),
               GestureDetector(
                 onTap: () {
                   setState(() => isRecruitment = false);
@@ -221,7 +218,7 @@ class _UploadPageState extends State<UploadPage> {
                 child: Text(
                   "리뷰",
                   style: TextStyle(
-                    color: !isRecruitment ? Color(0xFFD90206) : Colors.white,
+                    color: !isRecruitment ? const Color(0xFFD90206) : Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -252,17 +249,17 @@ class _UploadPageState extends State<UploadPage> {
                 : null,
             style: ButtonStyle(
               backgroundColor:
-                  MaterialStateProperty.resolveWith<Color>((states) {
-                if (states.contains(MaterialState.disabled)) {
+                  WidgetStateProperty.resolveWith<Color>((states) {
+                if (states.contains(WidgetState.disabled)) {
                   return Colors.grey;
                 }
                 return red;
               }),
-              padding: MaterialStateProperty.all<EdgeInsets>(
-                EdgeInsets.symmetric(vertical: 17),
+              padding: WidgetStateProperty.all<EdgeInsets>(
+                const EdgeInsets.symmetric(vertical: 17),
               ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                const RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(0),
                     topRight: Radius.circular(0),
@@ -297,7 +294,7 @@ class _UploadPageState extends State<UploadPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(height: 30),
+        const SizedBox(height: 30),
         SelectThemeButton(
           onPressed: () async {
             final result = await Navigator.push(
@@ -314,7 +311,7 @@ class _UploadPageState extends State<UploadPage> {
           },
           isTapped: isTapped, // 필요하다면 여전히 전달
         ),
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         sectionTitle2('테마의 평점을 남겨주세요 !'),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -322,7 +319,7 @@ class _UploadPageState extends State<UploadPage> {
             return IconButton(
               icon: Icon(
                 index < rating ? Icons.star : Icons.star_border,
-                color: Color(0xFFD90206),
+                color: const Color(0xFFD90206),
                 size: 30,
               ),
               onPressed: () => setState(() {
@@ -332,10 +329,10 @@ class _UploadPageState extends State<UploadPage> {
             );
           }),
         ),
-        SizedBox(height: 23),
+        const SizedBox(height: 23),
         Container(
           width: double.infinity,
-          decoration: BoxDecoration(color: const Color(0xFF121212)),
+          decoration: const BoxDecoration(color: Color(0xFF121212)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -363,11 +360,11 @@ class _UploadPageState extends State<UploadPage> {
           ),
         ),
         sectionTitleOption('생생한 후기를 적어주세요 !'),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Container(
           width: 342,
           height: 209,
-          padding: EdgeInsets.only(top: 5, left: 5),
+          padding: const EdgeInsets.only(top: 5, left: 5),
           decoration: ShapeDecoration(
             color: const Color(0xFF121212),
             shape:
@@ -388,7 +385,7 @@ class _UploadPageState extends State<UploadPage> {
               hintText:
                   "리뷰글을 작성해보세요.(선택사항)\n\n솔직한 경험을 공유하되, 다른 이용자와 업체를 배려하는\n리뷰를 작성해주세요 !",
               hintStyle: TextStyle(
-                color: const Color(0xFFB9B9B9),
+                color: Color(0xFFB9B9B9),
                 fontSize: 13,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
@@ -402,7 +399,7 @@ class _UploadPageState extends State<UploadPage> {
           ),
         ),
         sectionTitleOption('더욱 자세한 후기를 알고 싶어요 !'),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Container(
           color: const Color(0xFF121212),
           padding:
@@ -411,7 +408,7 @@ class _UploadPageState extends State<UploadPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -508,8 +505,8 @@ class _UploadPageState extends State<UploadPage> {
                               if (hintCount > 0) hintCount--;
                             });
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Icon(
                               Icons.remove,
                               color: Colors.white,
@@ -523,7 +520,7 @@ class _UploadPageState extends State<UploadPage> {
                           color: Colors.white,
                           child: Text(
                             '$hintCount',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
                             ),
@@ -535,8 +532,8 @@ class _UploadPageState extends State<UploadPage> {
                               hintCount++;
                             });
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Icon(
                               Icons.add,
                               color: Colors.white,
@@ -583,7 +580,7 @@ class _UploadPageState extends State<UploadPage> {
             ],
           ),
         ),
-        SizedBox(height: 30),
+        const SizedBox(height: 30),
       ],
     );
   }
@@ -607,10 +604,10 @@ class _UploadPageState extends State<UploadPage> {
             shape: BoxShape.circle,
             color: isSelected == true
                 ? Colors.white
-                : Color(0xFF121212), // 배경색 (원 안)
+                : const Color(0xFF121212), // 배경색 (원 안)
             border: Border.all(
                 width: 2,
-                color: isSelected == true ? Colors.white : Color(0xFF777676)),
+                color: isSelected == true ? Colors.white : const Color(0xFF777676)),
           ),
           child: Center(
             child: ColorFiltered(
@@ -622,7 +619,7 @@ class _UploadPageState extends State<UploadPage> {
                 iconPath,
                 width: 15,
                 height: 15,
-                color: isSelected == false ? Color(0xff777676) : Colors.black,
+                color: isSelected == false ? const Color(0xff777676) : Colors.black,
                 colorBlendMode: BlendMode.srcIn,
                 fit: BoxFit.contain,
               ),
@@ -644,7 +641,7 @@ class _UploadPageState extends State<UploadPage> {
         const SizedBox(width: 15),
         Icon(Icons.check_circle,
             color:
-                isChecked == true ? const Color(0xFFD90206) : Color(0xFF777676),
+                isChecked == true ? const Color(0xFFD90206) : const Color(0xFF777676),
             size: 26),
       ],
     );
@@ -678,13 +675,13 @@ class _UploadPageState extends State<UploadPage> {
     int selectedMinute = selectedTime?.minute ?? 0;
 
     return Container(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       color: const Color(0xFF121212),
       height: 180,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
@@ -693,7 +690,7 @@ class _UploadPageState extends State<UploadPage> {
               Text(
                 '※ 스크롤을 올리거나 내려서 시간을 조정하세요.',
                 style: TextStyle(
-                  color: const Color(0xFFB9B9B9),
+                  color: Color(0xFFB9B9B9),
                   fontSize: 14,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w400,
@@ -701,7 +698,7 @@ class _UploadPageState extends State<UploadPage> {
               ),
             ],
           ),
-          SizedBox(
+          const SizedBox(
             height: 15,
           ),
           Row(
@@ -768,12 +765,12 @@ class _UploadPageState extends State<UploadPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: isAm ? Color(0xffB80205) : Colors.transparent,
+                        color: isAm ? const Color(0xffB80205) : Colors.transparent,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10),
                         ),
-                        border: Border.all(color: Color(0xffB80205)),
+                        border: Border.all(color: const Color(0xffB80205)),
                       ),
                       child: const Text("AM",
                           style: TextStyle(
@@ -796,12 +793,12 @@ class _UploadPageState extends State<UploadPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: !isAm ? Color(0xffB80205) : Colors.transparent,
+                        color: !isAm ? const Color(0xffB80205) : Colors.transparent,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(10),
                           bottomRight: Radius.circular(10),
                         ),
-                        border: Border.all(color: Color(0xffB80205)),
+                        border: Border.all(color: const Color(0xffB80205)),
                       ),
                       child: const Text("PM",
                           style: TextStyle(
@@ -892,7 +889,7 @@ class _UploadPageState extends State<UploadPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(height: 30),
+        const SizedBox(height: 30),
         SelectThemeButton(
           onPressed: () async {
             final result = await Navigator.push(
@@ -921,10 +918,10 @@ class _UploadPageState extends State<UploadPage> {
             });
           },
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         sectionTitle('시간을 선택해주세요 !'),
         _buildTimePicker(),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         sectionTitle('일행을 소개해주세요 !'),
         // 제목 입력 필드
         Column(
@@ -933,7 +930,7 @@ class _UploadPageState extends State<UploadPage> {
           children: [
             Container(
               width: 342,
-              padding: EdgeInsets.only(top: 5, left: 5),
+              padding: const EdgeInsets.only(top: 5, left: 5),
               decoration: ShapeDecoration(
                 color: const Color(0xFF121212),
                 shape: RoundedRectangleBorder(
@@ -948,7 +945,7 @@ class _UploadPageState extends State<UploadPage> {
                 decoration: const InputDecoration(
                   hintText: "제목을 입력해주세요.",
                   hintStyle: TextStyle(
-                    color: const Color(0xFFB9B9B9),
+                    color: Color(0xFFB9B9B9),
                     fontSize: 13,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w500,
@@ -962,11 +959,11 @@ class _UploadPageState extends State<UploadPage> {
               ),
             ),
             const SizedBox(height: 10),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
               width: 342,
               height: 209,
-              padding: EdgeInsets.only(top: 5, left: 5),
+              padding: const EdgeInsets.only(top: 5, left: 5),
               decoration: ShapeDecoration(
                 color: const Color(0xFF121212),
                 shape: RoundedRectangleBorder(
@@ -987,7 +984,7 @@ class _UploadPageState extends State<UploadPage> {
                   hintText:
                       "내용을 입력해주세요.\n\n일행 소개글을 상세히 작성하면 나와 잘맞을 사람들의 모임 참여 신청이\n더욱 편리해져요 !\n\nex) OOO 테마에 예약을 미리 해놓았습니다 📅\n2~3인 정도 같이 하실 분 구해요 🫵🏻\n\n노쇼 방지하기 위해서 예약금은 2만원 씩 받으려고 합니다 !',",
                   hintStyle: TextStyle(
-                    color: const Color(0xFFB9B9B9),
+                    color: Color(0xFFB9B9B9),
                     fontSize: 13,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w500,
@@ -1000,7 +997,7 @@ class _UploadPageState extends State<UploadPage> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
           ],
         ),
       ],

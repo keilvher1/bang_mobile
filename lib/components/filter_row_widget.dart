@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../provider/filter_provider.dart';
 import '../provider/filter_theme_provider.dart';
-import '../provider/theme_provider.dart';
 
 class FilterRowWidget extends StatefulWidget {
   final double height;
@@ -14,14 +13,14 @@ class FilterRowWidget extends StatefulWidget {
   final FontWeight fontWeight;
 
   const FilterRowWidget({
-    Key? key,
+    super.key,
     this.height = 29.0,
     this.horizontalPadding = 12.0,
     this.iconSize = 24.0,
     this.fontSize = 13.0,
     this.fontColor = Colors.white,
     this.fontWeight = FontWeight.normal,
-  }) : super(key: key);
+  });
 
   @override
   _FilterRowWidgetState createState() => _FilterRowWidgetState();
@@ -62,10 +61,10 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.black,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => RegionBottomSheet(),
+      builder: (context) => const RegionBottomSheet(),
     );
 
     if (result != null) {
@@ -80,7 +79,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DifficultyBottomSheet(),
+      builder: (context) => const DifficultyBottomSheet(),
     );
 
     if (result != null) {
@@ -162,7 +161,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
         selectedValue != '난이도';
     return Container(
       height: widget.height,
-      padding: EdgeInsets.only(left: 7, right: 10),
+      padding: const EdgeInsets.only(left: 7, right: 10),
       decoration: BoxDecoration(
         color: isSelected ? Colors.white : Colors.transparent,
         border: Border.all(color: isSelected ? Colors.black : Colors.white),
@@ -177,7 +176,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
                   width: 16,
                   color: isSelected ? Colors.black : Colors.white,
                 )
-              : SizedBox.shrink(),
+              : const SizedBox.shrink(),
           const SizedBox(width: 3),
           Text(
             selectedValue ?? defaultLabel,
@@ -190,7 +189,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
           num == 0
               ? Icon(Icons.arrow_drop_down,
                   color: isSelected ? Colors.black : Colors.white, size: 16)
-              : SizedBox.shrink(),
+              : const SizedBox.shrink(),
         ],
       ),
     );
@@ -257,6 +256,8 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
 
 // 3. RegionBottomSheet 위젯
 class RegionBottomSheet extends StatefulWidget {
+  const RegionBottomSheet({super.key});
+
   @override
   _RegionBottomSheetState createState() => _RegionBottomSheetState();
 }
@@ -294,14 +295,14 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
   Widget build(BuildContext context) {
     final currentSub = subRegions[mainRegions[selectedMainIndex]] ?? [];
     debugPrint('$selectedMainIndex');
-    return Container(
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.63,
       // height: MediaQuery.of(context).size.width - 80,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
 
@@ -310,7 +311,7 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
                   SizedBox(
                     width: 12,
@@ -323,9 +324,9 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                 ],
               ),
               IconButton(
-                padding: EdgeInsets.only(bottom: 20, right: 25),
-                icon: Icon(Icons.close, color: Colors.white),
-                alignment: Alignment(-1, 1),
+                padding: const EdgeInsets.only(bottom: 20, right: 25),
+                icon: const Icon(Icons.close, color: Colors.white),
+                alignment: const Alignment(-1, 1),
                 onPressed: () => Navigator.pop(context),
               )
             ],
@@ -344,20 +345,20 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected ? Colors.white : Colors.black,
-                            border: Border(
+                            border: const Border(
                               bottom: BorderSide(
                                 width: 0.50,
-                                color: const Color(0xFF363636),
+                                color: Color(0xFF363636),
                               ),
                             ),
                           ),
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           child: Center(
                             child: Text(
                               mainRegions[index],
                               style: TextStyle(
                                 color: isSelected
-                                    ? Color(0xffD90206)
+                                    ? const Color(0xffD90206)
                                     : Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -381,27 +382,27 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                         child: Container(
                           decoration: BoxDecoration(
                             color:
-                                isSelected ? Color(0xffD90206) : Colors.black,
-                            border: Border(
+                                isSelected ? const Color(0xffD90206) : Colors.black,
+                            border: const Border(
                               bottom: BorderSide(
                                 width: 0.50,
-                                color: const Color(0xFF363636),
+                                color: Color(0xFF363636),
                               ),
                             ),
                           ),
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 16, horizontal: 12),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 sub,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Text('12', style: TextStyle(color: Colors.white)),
+                              const Text('12', style: TextStyle(color: Colors.white)),
                             ],
                           ),
                         ),
@@ -436,12 +437,12 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
                 : null,
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               alignment: Alignment.center,
               color: selectedSubRegion != null
-                  ? Color(0xffD90206)
-                  : Color(0xff515151),
-              child: Text('선택 완료',
+                  ? const Color(0xffD90206)
+                  : const Color(0xff515151),
+              child: const Text('선택 완료',
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
@@ -453,6 +454,8 @@ class _RegionBottomSheetState extends State<RegionBottomSheet> {
 }
 
 class DifficultyBottomSheet extends StatefulWidget {
+  const DifficultyBottomSheet({super.key});
+
   @override
   _DifficultyBottomSheetState createState() => _DifficultyBottomSheetState();
 }
@@ -475,8 +478,8 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
     // final double sliderWidth = MediaQuery.of(context).size.width - 80;
 
     return Container(
-      padding: EdgeInsets.only(top: 20),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.only(top: 20),
+      decoration: const BoxDecoration(
         color: Colors.black,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -489,7 +492,7 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
                   SizedBox(
                     width: 12,
@@ -502,16 +505,16 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                 ],
               ),
               IconButton(
-                padding: EdgeInsets.only(bottom: 20, right: 25),
-                icon: Icon(Icons.close, color: Colors.white),
-                alignment: Alignment(-1, 1),
+                padding: const EdgeInsets.only(bottom: 20, right: 25),
+                icon: const Icon(Icons.close, color: Colors.white),
+                alignment: const Alignment(-1, 1),
                 onPressed: () => Navigator.pop(context),
               )
             ],
           ),
 
-          Divider(color: Color(0xff363636)),
-          SizedBox(
+          const Divider(color: Color(0xff363636)),
+          const SizedBox(
             height: 25,
           ),
 
@@ -522,24 +525,24 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                 ),
                 child: Row(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       width: 50,
                     ),
                     Image.asset(
                       'assets/icon/puzzle_red.png',
                       width: 20,
-                      color: Color(0xffD90206),
+                      color: const Color(0xffD90206),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       "${entry.key}  :  ${entry.value}",
-                      style: TextStyle(color: Colors.white, fontSize: 13),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     )
                   ],
                 ),
               )),
 
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
 
           /// 퍼즐 + 슬라이더 (Stack)
           SizedBox(
@@ -563,7 +566,7 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                           //   elevation: 2,
                           // ),
                           trackHeight: 4,
-                          activeTrackColor: Color(0xffD90206),
+                          activeTrackColor: const Color(0xffD90206),
                           inactiveTrackColor: Colors.white30,
                           // overlayShape:
                           //     RoundSliderOverlayShape(overlayRadius: 16),
@@ -598,12 +601,12 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                           Image.asset(
                             'assets/icon/puzzle_red.png',
                             width: 24,
-                            color: Color(0xffD90206),
+                            color: const Color(0xffD90206),
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             "${_startDifficulty.round()}",
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -618,12 +621,12 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                           Image.asset(
                             'assets/icon/puzzle_red.png',
                             width: 24,
-                            color: Color(0xffD90206),
+                            color: const Color(0xffD90206),
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
                             "${_endDifficulty.round()}",
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -633,7 +636,7 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
               },
             ),
           ),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
 
           /// 완료 버튼
           // Container(
@@ -680,11 +683,11 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                 : null,
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               alignment: Alignment.center,
               color:
-                  _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
-              child: Text('선택 완료',
+                  _difficultySelected ? const Color(0xffD90206) : const Color(0xff515151),
+              child: const Text('선택 완료',
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),

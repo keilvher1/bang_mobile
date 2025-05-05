@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/select_theme_provider.dart';
@@ -13,7 +12,7 @@ Widget hashtag(List<String> tagStrList, Function(String) onTagAdded,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       // 해시태그 입력 필드
-      Row(
+      const Row(
         children: [
           // Expanded(
           //   child: TextField(
@@ -70,14 +69,14 @@ Widget hashtag(List<String> tagStrList, Function(String) onTagAdded,
                   padding:
                       const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF515151),
+                    color: const Color(0xFF515151),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Row(
                     children: [
                       Text(
                         tag,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Color(0xffD8D8D8),
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -131,7 +130,7 @@ Widget hashtagCenter(
                 child: Text(
                   tag,
                   style: TextStyle(
-                    color: isSelected ? Color(0xFFD90206) : Color(0xffD8D8D8),
+                    color: isSelected ? const Color(0xFFD90206) : const Color(0xffD8D8D8),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -150,10 +149,10 @@ class SelectThemeButton extends StatelessWidget {
   final bool isTapped;
 
   const SelectThemeButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     required this.isTapped,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -172,20 +171,20 @@ class SelectThemeButton extends StatelessWidget {
               decoration: const BoxDecoration(
                 color: Color(0xFF131313),
               ),
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.location_on,
+                      Icon(Icons.location_on,
                           color: Colors.grey, size: 22),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 4),
-                          const Text(
+                          SizedBox(height: 4),
+                          Text(
                             "이 곳을 눌러 테마를 선택해주세요.",
                             style: TextStyle(
                               color: Colors.grey,
@@ -193,8 +192,8 @@ class SelectThemeButton extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
+                          SizedBox(height: 4),
+                          Text(
                             "(같은 테마더라도 지점이 다를 수 있습니다.)",
                             style: TextStyle(
                               color: Colors.white70,
@@ -208,12 +207,12 @@ class SelectThemeButton extends StatelessWidget {
                 ],
               ),
             )
-          : Container(
+          : SizedBox(
               width: 352,
               height: 80,
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 66,
                     height: 80,
                     child: Image.network(
@@ -273,10 +272,10 @@ class CustomPersistentDatePicker extends StatefulWidget {
   final Function(DateTime) onDateSelected;
 
   const CustomPersistentDatePicker({
-    Key? key,
+    super.key,
     required this.initialDate,
     required this.onDateSelected,
-  }) : super(key: key);
+  });
 
   @override
   _CustomPersistentDatePickerState createState() =>
@@ -312,30 +311,30 @@ class _CustomPersistentDatePickerState
 
   Widget _buildCalendar() {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(0xFF121212),
+        color: const Color(0xFF121212),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Theme(
         data: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(0xffD90206),
+            seedColor: const Color(0xffD90206),
             brightness: Brightness.dark,
           ).copyWith(
-            primary: Color(0xffD90206),
-            onPrimary: Color(0xFF121212),
+            primary: const Color(0xffD90206),
+            onPrimary: const Color(0xFF121212),
             surface: Colors.black,
             onSurface: Colors.white,
           ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: Color(0xffD90206),
+              foregroundColor: const Color(0xffD90206),
             ),
           ),
         ),
         child: CalendarDatePicker(
-          initialDate: _selectedDate ?? DateTime.now().add(Duration(days: 1)),
+          initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
           firstDate: DateTime.now(),
           lastDate: DateTime(2100),
           onDateChanged: _onDateChanged,

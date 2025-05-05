@@ -4,9 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../auth/secure_storage.dart';
 import '../model/detail.dart';
+import '../model/party.dart';
+import '../model/partyDetail.dart';
 import '../model/review.dart';
 import '../model/saved_theme_model.dart';
-import '../model/theme.dart';
 import 'endpoint.dart';
 
 class ApiService {
@@ -425,5 +426,85 @@ class ApiService {
     } else {
       throw Exception('Failed to post: ${response.body}');
     }
+  }
+
+  Future<List<Party>> fetchPartyPagedList({int page = 0, int size = 10}) async {
+    try {
+      final accessToken = await secureStorage.readToken("x-access-token");
+
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception("No access token found.");
+      }
+
+      final uri = Uri.parse(
+          '${ApiConstants.baseUrl}/scrd/api/party/paged?page=$page&size=$size');
+      debugPrint("Party Request URL: $uri");
+
+      final response = await http.get(uri, headers: {
+        "Authorization": "Bearer $accessToken",
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': 'application/json',
+      });
+
+      debugPrint("Party ResponseCode: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        debugPrint("Party ResponseBody: $decodedBody");
+
+        final Map<String, dynamic> body = jsonDecode(decodedBody);
+        final List<dynamic> partyList = body['data'];
+
+        return partyList.map((json) => Party.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to fetch party list: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint("Exception fetching party list: $e");
+      return [];
+    }
+  }
+
+  Future<PartyDetail> fetchPartyDetail(int postId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    final uri = Uri.parse("${ApiConstants.baseUrl}/scrd/api/party/$postId");
+    final response = await http.get(
+      uri,
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Accept": "application/json",
+        "Origin": ApiConstants.baseUrl,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      return PartyDetail.fromJson(decoded['data']);
+    } else {
+      throw Exception("Failed to fetch party detail");
+    }
+  }
+
+  Future<bool> deleteComment(int commentId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception("No access token found.");
+    }
+
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/comment/$commentId');
+
+    debugPrint("Delete Comment URL: $uri");
+    final response = await http.delete(
+      uri,
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Accept": "application/json",
+      },
+    );
+    debugPrint("Delete Comment ResponseCode: ${response.statusCode}");
+
+    return response.statusCode == 200;
   }
 }

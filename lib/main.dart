@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/auth/login.dart';
-import 'package:scrd/page/nav_page.dart';
-import 'package:scrd/page/tier_page.dart';
 import 'package:scrd/provider/available_time_provider.dart';
 import 'package:scrd/provider/bottomsheet_provider.dart';
 import 'package:scrd/provider/detail_provider.dart';
@@ -13,6 +10,9 @@ import 'package:scrd/provider/filter_theme_provider.dart';
 import 'package:scrd/provider/my_review_provider.dart';
 import 'package:scrd/provider/navigation_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:scrd/provider/party_comment_provider.dart';
+import 'package:scrd/provider/party_detail_provider.dart';
+import 'package:scrd/provider/party_provider.dart';
 import 'package:scrd/provider/review_provider.dart';
 import 'package:scrd/provider/saved_theme_provider.dart';
 import 'package:scrd/provider/select_theme_provider.dart';
@@ -21,7 +21,6 @@ import 'package:scrd/provider/theme_provider.dart';
 import 'package:scrd/provider/upload_provider.dart';
 
 import 'auth/animation_page.dart';
-import 'components/infitite_scrolling_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +47,10 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeDetailProvider()),
         ChangeNotifierProvider(create: (context) => AvailableTimeProvider()),
         ChangeNotifierProvider(create: (context) => SelectThemeProvider()),
-        ChangeNotifierProvider(create: (context) => UploadProvider())
+        ChangeNotifierProvider(create: (context) => UploadProvider()),
+        ChangeNotifierProvider(create: (context) => PartyProvider()),
+        ChangeNotifierProvider(create: (context) => PartyDetailProvider()),
+        ChangeNotifierProvider(create: (context) => PartyCommentProvider()),
       ],
       child: const MyApp(),
     ),
@@ -80,16 +82,16 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xffD90206)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffD90206)),
         useMaterial3: true,
       ),
-      home: SplashWrapper(),
+      home: const SplashWrapper(),
     );
   }
 }
 
 class TotalLoginPage extends StatelessWidget {
-  const TotalLoginPage({Key? key}) : super(key: key);
+  const TotalLoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +121,8 @@ class TotalLoginPage extends StatelessWidget {
 }
 
 class SplashWrapper extends StatefulWidget {
+  const SplashWrapper({super.key});
+
   @override
   _SplashWrapperState createState() => _SplashWrapperState();
 }

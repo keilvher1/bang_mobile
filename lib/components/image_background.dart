@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class StackBackgroundPage extends StatelessWidget {
-  const StackBackgroundPage({Key? key}) : super(key: key);
+  const StackBackgroundPage({super.key});
 
   @override
   Widget build(BuildContext context) {
