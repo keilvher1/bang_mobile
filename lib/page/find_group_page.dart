@@ -322,185 +322,185 @@ class _FindGroupPageState extends State<FindGroupPage> {
     final formattedDate = DateFormat('M월 d일(E) HH:mm', 'ko_KR')
         .format(party.deadline); // DateTime -> 원하는 형식의 문자열
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => RecruitDetailPage(partyId: party.id)),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xff131313),
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: Colors.grey.shade900),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xff131313),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: Colors.grey.shade900),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              SizedBox(
+                width: 104,
+                height: 115,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: Image.network(
+                    party.image,
+                    fit: BoxFit.fill,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 146 * 0.2,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0),
+                        Colors.black.withOpacity(0.5),
+                        Colors.black.withOpacity(0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            //우측 영역
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 119,
-                  height: 146,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: Image.network(
-                      party.image,
-                      fit: BoxFit.cover,
-                    ),
+                Text(
+                  party.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 146 * 0.2,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0),
-                          Colors.black.withOpacity(0.5),
-                          Colors.black.withOpacity(0.8),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 21),
+                Row(
                   children: [
+                    Image.asset(
+                      'assets/icon/door_open.png',
+                      width: 13,
+                      height: 13,
+                    ),
+                    const SizedBox(width: 6),
                     Text(
-                      party.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      party.themeTitle,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 11,
                       ),
-                    ),
-                    const SizedBox(height: 28),
-                    Row(
-                      children: [
-                        Image.asset(
-                          'assets/icon/door_open.png',
-                          width: 13,
-                          height: 13,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          party.themeTitle,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on,
-                            color: Colors.white54, size: 14),
-                        const SizedBox(width: 6),
-                        Text(
-                          party.location,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today,
-                                    color: Color(0xff9D9D9D), size: 12),
-                                const SizedBox(width: 6),
-                                Text(
-                                  formattedDate,
-                                  style: const TextStyle(
-                                    color: Color(0xFFD90206),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            Row(
-                              children: [
-                                Image.asset(
-                                  'assets/icon/people.png',
-                                  width: 12,
-                                  height: 12,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${party.currentParticipants} ',
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 11),
-                                ),
-                                Text(
-                                  '/ ${party.maxParticipants}인',
-                                  style: const TextStyle(
-                                      color: Colors.white70, fontSize: 11),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: 63,
-                          height: 26,
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFD90206),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '신청하기',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-            )
-          ],
-        ),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on,
+                        color: Colors.white54, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      party.location,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today,
+                                color: Color(0xff9D9D9D), size: 12),
+                            const SizedBox(width: 6),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                color: Color(0xFFD90206),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Image.asset(
+                              'assets/icon/people.png',
+                              width: 12,
+                              height: 12,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${party.currentParticipants} ',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 11),
+                            ),
+                            Text(
+                              '/ ${party.maxParticipants}인',
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  RecruitDetailPage(partyId: party.id)),
+                        );
+                      },
+                      child: Container(
+                        width: 63,
+                        height: 26,
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFD90206),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '상세보기',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }

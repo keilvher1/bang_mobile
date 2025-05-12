@@ -8,6 +8,7 @@ import 'package:scrd/utils/endpoint.dart';
 import '../model/party_comment.dart';
 import '../provider/party_comment_provider.dart';
 import '../provider/party_detail_provider.dart';
+import '../provider/party_join_provider.dart';
 
 class RecruitDetailPage extends StatefulWidget {
   final int partyId;
@@ -67,8 +68,10 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<PartyDetailProvider>(context);
-    final detail = provider.party;
+    final detail = Provider.of<PartyDetailProvider>(context).party;
+    if (detail == null) {
+      return const Center(child: CircularProgressIndicator()); // 또는 다른 로딩/에러 위젯
+    }
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -100,276 +103,329 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white, // 배경색 설정
-                        radius: 20, // 아바타 크기 설정
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/needle.png',
-                            width: 26,
-                            height: 26,
-                            fit: BoxFit.contain, // 원 안에 이미지 맞추기
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            detail!.writerNickname.toString(),
-                            style: TextStyle(
-                              color: Color(0xFFFFF8F8),
-                              fontSize: 12,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.white, // 배경색 설정
+                          radius: 20, // 아바타 크기 설정
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/needle.png',
+                              width: 26,
+                              height: 26,
+                              fit: BoxFit.contain, // 원 안에 이미지 맞추기
                             ),
                           ),
-                          Text(
-                            _getTimeAgoText(detail.regDate),
-                            style: const TextStyle(
-                              color: Color(0xFF878787),
-                              fontSize: 10,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
-                            ),
-                            textAlign: TextAlign.end,
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    detail.title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                      height: 1.33,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Row(
-                    children: [
-                      Text('날짜 ',
-                          style: TextStyle(color: Colors.white, fontSize: 14)),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        _formatDeadline(detail.deadline),
-                        style: const TextStyle(
-                          color: Color(0xFFB80205),
-                          fontSize: 13,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
                         ),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Row(
-                    children: [
-                      Text('인원 ',
-                          style: TextStyle(color: Colors.white, fontSize: 14)),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text.rich(
-                        TextSpan(
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextSpan(
-                              text: detail.currentParticipants.toString(),
+                            Text(
+                              detail.writerNickname.toString(),
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
+                                color: Color(0xFFFFF8F8),
+                                fontSize: 12,
                                 fontFamily: 'Inter',
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            TextSpan(
-                              text: ' ',
-                              style: TextStyle(
-                                color: Color(0xFF9D9D9D),
-                                fontSize: 13,
+                            Text(
+                              _getTimeAgoText(detail.regDate),
+                              style: const TextStyle(
+                                color: Color(0xFF878787),
+                                fontSize: 10,
                                 fontFamily: 'Inter',
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                               ),
-                            ),
-                            TextSpan(
-                              text: '/ ${detail.maxParticipants}인',
-                              style: TextStyle(
-                                color: Color(0xFFA3A3A3),
-                                fontSize: 13,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w600,
-                              ),
+                              textAlign: TextAlign.end,
                             ),
                           ],
-                        ),
-                      )
-                    ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Text(detail.content,
-                      style: TextStyle(color: Colors.white, fontSize: 14)),
-                ),
-                const SizedBox(height: 97),
-                const Divider(
-                  color: Color(0xFF363131),
-                ),
-                const SizedBox(height: 10),
-                _buildThemeCard(detail!),
-                const SizedBox(height: 15),
-                Container(
-                  width: 344,
-                  height: 36,
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFD90206) /* red-6 */,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                  ),
-                  child: const Center(
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
                     child: Text(
-                      '신청하기',
+                      detail.title,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 15,
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w700,
+                        height: 1.33,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                const Divider(
-                  color: Color(0xFF181818),
-                  thickness: 6,
-                ),
-                const SizedBox(height: 30),
-                Container(
-                  padding: const EdgeInsets.only(left: 8),
-                  width: 42,
-                  height: 30,
-                  child: const Stack(
-                    children: [
-                      Positioned(
-                        left: 35,
-                        top: 0,
-                        child: SizedBox(
-                          width: 13,
-                          height: 13,
-                          child: Text(
-                            '2',
-                            style: TextStyle(
-                              color: Color(0xFFA3A3A3),
-                              fontSize: 10,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Row(
+                      children: [
+                        Text('날짜 ',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 14)),
+                        SizedBox(
+                          width: 10,
                         ),
-                      ),
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: SizedBox(
-                          width: 36,
-                          child: Text(
-                            '댓글',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w700,
-                            ),
+                        Text(
+                          _formatDeadline(detail.deadline),
+                          style: const TextStyle(
+                            color: Color(0xFFB80205),
+                            fontSize: 13,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ),
-                    ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Consumer<PartyCommentProvider>(
-                  builder: (context, provider, _) {
-                    if (provider.isLoading) return CircularProgressIndicator();
-                    if (provider.comments.isEmpty) return Text("댓글이 없습니다.");
-                    return _buildComments(provider.comments);
-                  },
-                ),
-                // if (!hasComments)
-                //   Column(
-                //     mainAxisAlignment: MainAxisAlignment.center,
-                //     crossAxisAlignment: CrossAxisAlignment.center,
-                //     children: [
-                //       const SizedBox(
-                //         height: 54,
-                //       ),
-                //       Container(
-                //         width: 60,
-                //         height: 60,
-                //         decoration: const BoxDecoration(),
-                //         child: Image.asset('assets/icon/textballoon.png'),
-                //       ),
-                //       const SizedBox(height: 8),
-                //       const Text(
-                //         '첫 번째 코멘트를 남겨 보세요!',
-                //         style: TextStyle(
-                //           color: Color(0xFFB9B9B9),
-                //           fontSize: 10,
-                //           fontFamily: 'Inter',
-                //           fontWeight: FontWeight.w700,
-                //         ),
-                //       ),
-                //       const SizedBox(
-                //         height: 40,
-                //       )
-                //     ],
-                //   )
-                // else
-                //   Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       _buildComment(
-                //           name: '우당탕탕 탕구리',
-                //           time: '1일 전',
-                //           text: '안녕하세요, 10방 정도해본 방린이도 가능한가요?'),
-                //       _buildComment(
-                //           name: '한 대 피카츄',
-                //           time: '1일 전',
-                //           text: '아뇨 죄송요.',
-                //           isReply: true)
-                //     ],
-                //   ),
-              ],
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Row(
+                      children: [
+                        Text('인원 ',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 14)),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: detail.currentParticipants.toString(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ' ',
+                                style: TextStyle(
+                                  color: Color(0xFF9D9D9D),
+                                  fontSize: 13,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '/ ${detail.maxParticipants}인',
+                                style: TextStyle(
+                                  color: Color(0xFFA3A3A3),
+                                  fontSize: 13,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Text(detail.content,
+                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ),
+                  const SizedBox(height: 97),
+                  const Divider(
+                    color: Color(0xFF363131),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildThemeCard(detail),
+                  const SizedBox(height: 15),
+                  Consumer<PartyJoinProvider>(
+                    builder: (context, joinProvider, child) {
+                      return GestureDetector(
+                        onTap: () async {
+                          await joinProvider.toggleJoin(widget.partyId);
+                          // final msg =
+                          //     joinProvider.joinSuccess ? "신청 완료!" : "신청 실패 😢";
+                          // ScaffoldMessenger.of(context)
+                          //     .showSnackBar(SnackBar(content: Text(msg)));
+                        },
+                        child: Container(
+                          width: 344,
+                          height: 36,
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFD90206),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: Center(
+                            child: joinProvider.isJoining
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
+                                : Text(
+                                    !joinProvider.hasJoined ? '신청하기' : '신청취소',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  const Divider(
+                    color: Color(0xFF181818),
+                    thickness: 6,
+                  ),
+                  const SizedBox(height: 30),
+                  Container(
+                    padding: const EdgeInsets.only(left: 8),
+                    width: 42,
+                    height: 30,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 35,
+                          top: 0,
+                          child: SizedBox(
+                            width: 13,
+                            height: 13,
+                            child: Text(
+                              Provider.of<PartyCommentProvider>(context)
+                                  .comments
+                                  .length
+                                  .toString(),
+                              style: const TextStyle(
+                                color: Color(0xFFA3A3A3),
+                                fontSize: 10,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: SizedBox(
+                            width: 36,
+                            child: Text(
+                              '댓글',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Consumer<PartyCommentProvider>(
+                    builder: (context, provider, _) {
+                      if (provider.isLoading)
+                        return CircularProgressIndicator();
+                      if (provider.comments.isEmpty)
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 54,
+                            ),
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: const BoxDecoration(),
+                              child: Image.asset('assets/icon/textballoon.png'),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '첫 번째 코멘트를 남겨 보세요!',
+                              style: TextStyle(
+                                color: Color(0xFFB9B9B9),
+                                fontSize: 10,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 40,
+                            )
+                          ],
+                        );
+                      return _buildComments(provider.comments);
+                    },
+                  ),
+                  // if (!hasComments)
+                  //   Column(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                  //     children: [
+                  //       const SizedBox(
+                  //         height: 54,
+                  //       ),
+                  //       Container(
+                  //         width: 60,
+                  //         height: 60,
+                  //         decoration: const BoxDecoration(),
+                  //         child: Image.asset('assets/icon/textballoon.png'),
+                  //       ),
+                  //       const SizedBox(height: 8),
+                  //       const Text(
+                  //         '첫 번째 코멘트를 남겨 보세요!',
+                  //         style: TextStyle(
+                  //           color: Color(0xFFB9B9B9),
+                  //           fontSize: 10,
+                  //           fontFamily: 'Inter',
+                  //           fontWeight: FontWeight.w700,
+                  //         ),
+                  //       ),
+                  //       const SizedBox(
+                  //         height: 40,
+                  //       )
+                  //     ],
+                  //   )
+                  // else
+                  //   Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       _buildComment(
+                  //           name: '우당탕탕 탕구리',
+                  //           time: '1일 전',
+                  //           text: '안녕하세요, 10방 정도해본 방린이도 가능한가요?'),
+                  //       _buildComment(
+                  //           name: '한 대 피카츄',
+                  //           time: '1일 전',
+                  //           text: '아뇨 죄송요.',
+                  //           isReply: true)
+                  //     ],
+                  //   ),
+                ],
+              ),
             ),
-          ),
-          _buildCommentInput(),
-        ],
+            _buildCommentInput(),
+          ],
+        ),
       ),
     );
   }
@@ -389,7 +445,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
             detail.themeImage,
             width: 110,
             height: 120,
-            fit: BoxFit.cover,
+            fit: BoxFit.fill,
           ),
           const SizedBox(width: 30),
           Expanded(
@@ -539,6 +595,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                 color: color,
                 width: imageSize,
                 height: imageSize,
+                fit: BoxFit.contain,
               ),
               value != null
                   ? Text(
@@ -725,10 +782,14 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
             ],
           ),
           PopupMenuButton<String>(
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'delete') {
-                Provider.of<PartyCommentProvider>(context, listen: false)
+                //debugPrint('댓글 삭제: ${comment.id}');
+                await Provider.of<PartyCommentProvider>(context, listen: false)
                     .deleteComment(comment.id);
+                await Provider.of<PartyCommentProvider>(context, listen: false)
+                    .fetchComments(widget.partyId);
+                setState(() {});
               }
             },
             itemBuilder: (BuildContext context) => [

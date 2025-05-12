@@ -11,6 +11,9 @@ class FilterThemeProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isFiltered = false;
+  bool get isFiltered => _isFiltered;
+
   Future<void> fetchFilteredThemes(FilterProvider filterProvider) async {
     if (_isLoading) return;
 
@@ -26,10 +29,26 @@ class FilterThemeProvider with ChangeNotifier {
         levelMax: filterProvider.levelMax,
         selectedDate: ThemeProvider().selectedDate,
       );
+      if (filterProvider.horror == 0 &&
+          filterProvider.activity == 0 &&
+          (filterProvider.region == '전체' || filterProvider.region == null)) {
+        debugPrint("❌ No filters applied.");
+        _isFiltered = false;
+        ThemeProvider().themes.clear();
+        return;
+      } else {
+        _isFiltered = true;
+        if (jsonList.isEmpty) {
+          debugPrint("❌ No filtered themes found.");
+          _filteredThemes = [];
+          ThemeProvider().themes.clear();
+          return;
+        }
 
-      _filteredThemes =
-          jsonList.map((json) => ThemeModel.fromJson(json)).toList();
-      debugPrint("✅ Filtered themes loaded: ${_filteredThemes.length}개");
+        _filteredThemes =
+            jsonList.map((json) => ThemeModel.fromJson(json)).toList();
+        debugPrint("✅ Filtered themes loaded: ${_filteredThemes.length}개");
+      }
     } catch (e) {
       debugPrint('❌ Error fetching filtered themes: $e');
       _filteredThemes = [];

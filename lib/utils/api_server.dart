@@ -1,13 +1,19 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../auth/secure_storage.dart';
 import '../model/detail.dart';
 import '../model/party.dart';
 import '../model/partyDetail.dart';
+import '../model/party_join_notification.dart';
+import '../model/region_theme_count.dart';
 import '../model/review.dart';
 import '../model/saved_theme_model.dart';
+import '../model/theme.dart';
+import '../provider/notification_provider.dart';
 import 'endpoint.dart';
 
 class ApiService {
@@ -109,6 +115,8 @@ class ApiService {
         throw Exception("No access token found.");
       }
 
+      debugPrint("Theme ID: $themeId"); // 디버깅용
+
       final response = await http.get(
         Uri.parse("${ApiConstants.reviewList}/theme/$themeId"), // ★ 여기를 수정
         headers: {
@@ -123,7 +131,12 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        return jsonDecode(decodedBody);
+        final List<dynamic> reviews = jsonDecode(decodedBody);
+
+        // id 기준 내림차순 정렬
+        reviews.sort((a, b) => (b['id'] as int).compareTo(a['id'] as int));
+
+        return reviews;
       } else {
         throw Exception("Failed to load reviews");
       }
@@ -195,11 +208,16 @@ class ApiService {
           DateFormat('yyyy-MM-dd').format(selectedDate ?? DateTime.now());
       Uri uri;
 
-      if (queryParameters.isEmpty) {
+      if (queryParameters.isEmpty ||
+          ((region == "전체" || region == null) &&
+              ((horror == 0 || horror == null) &&
+                  (activity == 0 || activity == null)))) {
+        debugPrint("No filters applied 2");
         uri = Uri.parse(
           '${ApiConstants.baseUrl}/scrd/api/theme/paged?page=0&size=20&platform=mobile&date=$formattedDate',
         );
       } else {
+        debugPrint("ApiConstants.baseHost: ${ApiConstants.baseHost}");
         uri = Uri.http(
           ApiConstants.baseHost,
           '/scrd/api/theme/filter',
@@ -246,8 +264,8 @@ class ApiService {
         throw Exception("No access token found.");
       }
 
-      Uri uri = Uri.parse(ApiConstants.myReviewList(userId)); // ✅ userId 넣어서 호출
-
+      Uri uri = Uri.parse(ApiConstants.myReviewList("my")); // ✅ userId 넣어서 호출
+      debugPrint("Request URL: $uri"); // 요청 URL 확인
       final response = await http.get(
         uri,
         headers: {
@@ -259,8 +277,18 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> jsonList = jsonDecode(decodedBody);
-        return jsonList.map((json) => Review.fromJson(json)).toList();
+        // final List<dynamic> jsonList = jsonDecode(decodedBody);
+        // return jsonList.map((json) => Review.fromJson(json)).toList();
+        //final decodedBody = utf8.decode(response.bodyBytes);
+        final List<dynamic> decodedJson = jsonDecode(decodedBody);
+
+// id 기준 내림차순 정렬 후, Review 객체로 매핑
+        decodedJson.sort((a, b) => (b['id'] as int).compareTo(a['id'] as int));
+        final List<Review> reviewList = decodedJson
+            .map((json) => Review.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        return reviewList;
       } else {
         throw Exception("Failed to load my reviews: ${response.statusCode}");
       }
@@ -506,5 +534,281 @@ class ApiService {
     debugPrint("Delete Comment ResponseCode: ${response.statusCode}");
 
     return response.statusCode == 200;
+  }
+
+  StreamSubscription<String>? _sseSubscription;
+
+  Future<void> subscribeToSSE(BuildContext context, String token) async {
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/subscribe?token=$token');
+
+    debugPrint("🔔 SSE 구독 URL: $uri");
+
+    final client = http.Client();
+    final request = http.Request("GET", uri);
+
+    try {
+      final response = await client.send(request);
+      if (response.statusCode == 200) {
+        debugPrint("✅ SSE 연결 성공");
+
+        _sseSubscription = response.stream
+            .transform(utf8.decoder)
+            .transform(LineSplitter())
+            .listen((line) async {
+          if (line.trim().isNotEmpty) {
+            debugPrint("📥 SSE 수신: $line");
+            await Provider.of<NotificationProvider>(context, listen: false)
+                .loadNotifications();
+
+            // "참여 신청" 포함된 경우 상태 반영
+            if (line.contains('참여 신청')) {
+              Provider.of<NotificationProvider>(context, listen: false)
+                  .setHasPending(true);
+            }
+          }
+        });
+      } else {
+        debugPrint("❌ SSE 연결 실패: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("❗ SSE 오류: $e");
+    }
+  }
+
+  //일행 신청하기
+  Future<bool> joinParty(int postId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception("No access token found.");
+    }
+
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/$postId/join');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    );
+
+    return response.statusCode == 200;
+  }
+
+  // 일행 신청 취소하기
+  Future<bool> cancelJoinParty(int postId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/$postId/join');
+
+    final response = await http.delete(uri, headers: {
+      "Authorization": "Bearer $accessToken",
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    });
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> toggleJoinParty(int postId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/$postId/join');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return true; // 새로 신청 성공
+    } else if (response.statusCode == 400) {
+      final body = jsonDecode(utf8.decode(response.bodyBytes));
+      if (body['message'] == '이미 신청한 일행입니다.') {
+        cancelJoinParty(postId);
+        return false; // 이미 신청 → 취소로 간주
+      }
+    }
+    throw Exception('신청/취소 요청 실패');
+  }
+
+  Future<List<PartyJoinNotification>> fetchJoinNotifications() async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception("No access token found.");
+    }
+
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/join/notification');
+
+    final response = await http.get(uri, headers: {
+      "Authorization": "Bearer $accessToken",
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      final List<dynamic> jsonList = decoded['data'];
+      return jsonList
+          .map((json) => PartyJoinNotification.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Failed to fetch notifications');
+    }
+  }
+
+  Future<bool> updateJoinStatus(int joinId, String status) async {
+    final token = await secureStorage.readToken("x-access-token");
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/party/join/$joinId/status');
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"status": status}),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  // 지역별 테마 개수 가져오기
+  // Future<List<RegionThemeCount>> fetchRegionThemeCounts() async {
+  //   final accessToken = await secureStorage.readToken("x-access-token");
+  //   if (accessToken == null || accessToken.isEmpty) {
+  //     throw Exception("No access token found.");
+  //   }
+  //
+  //   final uri =
+  //       Uri.parse('${ApiConstants.baseUrl}/scrd/api/theme/location-counts');
+  //   final response = await http.get(uri, headers: {
+  //     "Authorization": "Bearer $accessToken",
+  //     'Content-Type': 'application/json; charset=UTF-8',
+  //     'Accept': 'application/json',
+  //   });
+  //   debugPrint("ResponseCode: ${response.statusCode}");
+  //   if (response.statusCode == 200) {
+  //     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+  //     final List<dynamic> list = decoded['counts'];
+  //     return list.map((e) => RegionThemeCount.fromJson(e)).toList();
+  //   } else {
+  //     throw Exception('Failed to fetch region counts');
+  //   }
+  // }
+  Future<RegionCountResponse> fetchRegionCounts() async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception("No access token found.");
+    }
+
+    final uri =
+        Uri.parse('${ApiConstants.baseUrl}/scrd/api/theme/location-counts');
+
+    final response = await http.get(uri, headers: {
+      "Authorization": "Bearer $accessToken",
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      return RegionCountResponse.fromJson(decoded);
+    } else {
+      throw Exception('지역 카운트 불러오기 실패: ${response.statusCode}');
+    }
+  }
+
+  Future<List<ThemeModel>> searchFilteredThemes({
+    required String keyword,
+    required DateTime date,
+    int? horror,
+    int? activity,
+    String? location,
+    double? levelMin,
+    double? levelMax,
+  }) async {
+    try {
+      debugPrint("🔍 Search Filtered Themes");
+      final token = await secureStorage.readToken("x-access-token");
+      if (token == null || token.isEmpty) {
+        throw Exception("No access token found");
+      }
+
+      final String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+
+      final queryParams = {
+        'keyword': keyword,
+        'date': formattedDate,
+        if (horror != null) 'horror': horror.toString(),
+        if (activity != null) 'activity': activity.toString(),
+        if (location != null && location != '전체') 'location': location,
+        if (levelMin != null) 'levelMin': levelMin.toString(),
+        if (levelMax != null) 'levelMax': levelMax.toString(),
+      };
+      debugPrint("🔍 Search Filtered Themes Query Params: $queryParams");
+      final uri = Uri.http(
+        ApiConstants.baseHost,
+        '/scrd/api/theme/search/filtered',
+        queryParams,
+      );
+      debugPrint("🔍 Search API Request URL: $uri");
+
+      final response = await http.get(
+        uri,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+          "Origin": ApiConstants.baseUrl,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((e) => ThemeModel.fromJson(e)).toList();
+      } else {
+        debugPrint("❌ Search failed: ${response.statusCode}");
+        throw Exception("Search failed");
+      }
+    } catch (e) {
+      debugPrint("❗ Search error: $e");
+      rethrow;
+    }
+  }
+
+  Future<int> fetchReviewCount() async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}/scrd/api/review/count');
+      final accessToken = await secureStorage.readToken("x-access-token");
+
+      final response = await http.get(
+        uri,
+        headers: {
+          "Authorization": "Bearer $accessToken",
+          "Accept": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        final int reviewCount = json['data'];
+        return reviewCount;
+      } else {
+        throw Exception("리뷰 개수 가져오기 실패: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("❗ 리뷰 개수 요청 중 오류 발생: $e");
+      rethrow;
+    }
   }
 }

@@ -10,19 +10,18 @@ class ReviewProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> fetchReviews(int themeId) async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
+      _isLoading = true;
+      notifyListeners();
       List<dynamic> response = await ApiService().fetchReviewLists(themeId);
       _reviews = response.map((json) => Review.fromJson(json)).toList();
     } catch (e) {
-      print('Error fetching review list: $e');
+      debugPrint('Error fetching review list: $e');
       _reviews = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   void clearReviews() {

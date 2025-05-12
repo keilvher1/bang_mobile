@@ -1,5 +1,6 @@
 class Review {
   final int id;
+  final String userTier;
   final String nickName;
   final String text;
   final int level;
@@ -7,10 +8,14 @@ class Review {
   final int horror;
   final int activity;
   final List<String> tagNames;
-  final String userTier; // 추가!
+  final String themeTitle;
+  final String themeBranch;
+  final String themeLocation;
+  final String themeImage;
 
   Review({
     required this.id,
+    required this.userTier,
     required this.nickName,
     required this.text,
     required this.level,
@@ -18,20 +23,27 @@ class Review {
     required this.horror,
     required this.activity,
     required this.tagNames,
-    required this.userTier,
+    required this.themeTitle,
+    required this.themeBranch,
+    required this.themeLocation,
+    required this.themeImage,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'],
-      nickName: json['nickName'],
-      text: json['text'],
-      level: json['level'],
-      stars: json['stars'],
-      horror: json['horror'],
-      activity: json['activity'],
+      id: json['id'] ?? 0,
+      userTier: json['userTier'] ?? '',
+      nickName: json['nickName'] ?? '',
+      text: json['text'] ?? '',
+      level: json['level'] ?? 0,
+      stars: json['stars'] ?? 0,
+      horror: json['horror'] ?? 0,
+      activity: json['activity'] ?? 0,
       tagNames: List<String>.from(json['tagNames'] ?? []),
-      userTier: json['userTier'],
+      themeTitle: json['themeTitle'] ?? '',
+      themeBranch: json['themeBranch'] ?? '',
+      themeLocation: json['themeLocation'] ?? '',
+      themeImage: json['themeImage'] ?? '',
     );
   }
 }

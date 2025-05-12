@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../components/buttons.dart';
+import '../model/review.dart';
 import '../provider/my_review_provider.dart';
 
 class MyReviewPage extends StatefulWidget {
@@ -12,7 +13,7 @@ class MyReviewPage extends StatefulWidget {
 }
 
 class _MyReviewPageState extends State<MyReviewPage> {
-  final String userId = "1"; // ★ 여기에 로그인한 사용자의 userId 넣으면 돼!
+  final String userId = "3"; // ★ 여기에 로그인한 사용자의 userId 넣으면 돼!
 
   @override
   void initState() {
@@ -105,8 +106,8 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                     //   height: 161,
                                     //   fit: BoxFit.cover,
                                     // ),
-                                    child: Image.asset(
-                                      'assets/level/level${review.userTier}.png',
+                                    child: Image.network(
+                                      review.themeImage,
                                       width: 144,
                                       height: 161,
                                       fit: BoxFit.cover,
@@ -140,7 +141,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                               SizedBox(
                                                 width: 200,
                                                 child: Text(
-                                                  review.text,
+                                                  review.themeTitle,
                                                   style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 16,
@@ -165,7 +166,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                           ),
                                         ),
                                         const SizedBox(height: 2), // 간격 추가
-                                        const Row(
+                                        Row(
                                           children: [
                                             Icon(
                                               Icons.location_on,
@@ -173,7 +174,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                               size: 14,
                                             ),
                                             Text(
-                                              '키이스케이프 | 스테이션점',
+                                              '${review.themeLocation} | ${review.themeBranch}',
                                               style: TextStyle(
                                                 color: Color(0xFFB9B9B9),
                                                 fontSize: 12,
@@ -199,7 +200,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                             const SizedBox(width: 14),
                                             _buildRatingItem(
                                                 label: '난이도',
-                                                value: '-1',
+                                                value: review.level.toString(),
                                                 imagePath:
                                                     'assets/icon/puzzle_red.png',
                                                 imageSize: 23,
@@ -237,10 +238,10 @@ class _MyReviewPageState extends State<MyReviewPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 15),
-                            hashtag(tags, addTag, removeTag),
+                            hashtag(review.tagNames, addTag, removeTag),
                             const SizedBox(height: 15),
-                            const Text(
-                              '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을때 만족도는 거의 비슷하다.',
+                            Text(
+                              review.text,
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 13),
                             ),
@@ -333,7 +334,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
     );
   }
 
-  Widget _buildReviewCard() {
+  Widget _buildReviewCard(Review review) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -386,17 +387,11 @@ class _MyReviewPageState extends State<MyReviewPage> {
           ],
         ),
         const SizedBox(height: 10),
-        const Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            _Hashtag('#감성적인'),
-            _Hashtag('#귀여운'),
-            _Hashtag('#신비한'),
-            _Hashtag('#스릴있는'),
-            _Hashtag('#미스터리한'),
-          ],
-        ),
+        // Wrap(
+        //   spacing: 8,
+        //   runSpacing: 6,
+        //   children:  tagNames.map((tag) => _Hashtag('#$tag')).toList(),
+        // ),
         const SizedBox(height: 10),
         const Text(
           '머니머니 패키지보다 훨씬더 어렵고 인원이 늘어나서인지 모르겠지만 문제 난이도 자체는 머머패가 조금 더 어려웠던 것 같다. 머머패랑 비교했을 때 만족도는 거의 비슷하다.',

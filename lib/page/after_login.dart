@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:scrd/page/my_saved_page.dart';
 import 'package:scrd/page/tier_page.dart';
+import 'package:scrd/utils/api_server.dart';
 
 import 'my_reply_page.dart';
 
@@ -17,6 +18,20 @@ class _AfterLoginState extends State<AfterLogin> {
   TagOption selectedOption = TagOption.scarlet;
   String selectedCircle = "고객 센터"; // 선택된 버튼 초기값
   final _storage = const FlutterSecureStorage();
+  int? reviewCount;
+
+  Future<void> loadReviewCount() async {
+    final count = await ApiService().fetchReviewCount(); // 위에서 만든 함수 사용
+    setState(() {
+      reviewCount = count;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadReviewCount();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +84,7 @@ class _AfterLoginState extends State<AfterLogin> {
                   gifAsset: 'assets/video1.gif',
                   menuItems: [
                     {
-                      "REVIEW (52)": () {
+                      "REVIEW ($reviewCount)": () {
                         debugPrint("REVIEW 클릭됨");
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -194,8 +209,8 @@ class _AfterLoginState extends State<AfterLogin> {
                   borderRadius: BorderRadius.circular(40),
                 ),
                 alignment: Alignment.center,
-                child: const Text(
-                  "HOLMES (59)",
+                child: Text(
+                  "HOLMES ($reviewCount)",
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,

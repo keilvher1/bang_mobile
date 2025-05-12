@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scrd/auth/secure_storage.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
+import '../provider/notification_provider.dart';
 import '../utils/endpoint.dart';
 
 class KakaoLoginWebView extends StatefulWidget {
   final String clientId;
   final String redirectUri;
 
-  const KakaoLoginWebView({super.key, 
+  const KakaoLoginWebView({
+    super.key,
     required this.clientId,
     required this.redirectUri,
   });
@@ -98,8 +101,12 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
 
           debugPrint("Saved x-refresh-token: $savedRefreshToken");
           debugPrint("Saved x-access-token: $savedAccessToken");
+          // if (savedAccessToken != null) {
+          //   debugPrint("Initializing NotificationProvider");
+          //   Provider.of<NotificationProvider>(context, listen: false)
+          //       .initialize(context, savedAccessToken);
+          // }
 
-          // 이동
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const NavPage()),
             (Route<dynamic> route) => false,

@@ -37,21 +37,21 @@ class ThemeDetail {
 
   factory ThemeDetail.fromJson(Map<String, dynamic> json) {
     return ThemeDetail(
-      id: json['id'],
-      title: json['title'],
-      location: json['location'],
-      price: json['price'],
-      image: json['image'],
-      url: json['url'],
-      brand: json['brand'],
-      branch: json['branch'],
-      playtime: json['playtime'],
+      id: json['id'] ?? 0,
+      title: json['title'] ?? '',
+      location: json['location'] ?? '',
+      price: json['price'] ?? 0,
+      image: json['image'] ?? '',
+      url: json['url'] ?? '',
+      brand: json['brand'] ?? '',
+      branch: json['branch'] ?? '',
+      playtime: json['playtime'] ?? 0,
       rating: (json['rating'] as num).toDouble(),
       proportion: json['proportion'] ?? '', // 👈 proportion은 String이야
-      horror: json['horror'],
-      activity: json['activity'],
+      horror: json['horror'] ?? 0,
+      activity: json['activity'] ?? 0,
       level: (json['level'] as num).toDouble(),
-      reviewCount: json['reviewCount'],
+      reviewCount: json['reviewCount'] ?? 0,
     );
   }
 }

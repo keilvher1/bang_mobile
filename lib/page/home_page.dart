@@ -3,15 +3,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:scrd/components/style.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../components/filter_row_widget.dart';
 import '../model/theme.dart';
 import '../provider/bottomsheet_provider.dart';
 import '../provider/detail_provider.dart';
+import '../provider/filter_provider.dart';
 import '../provider/filter_theme_provider.dart';
 import '../provider/review_provider.dart';
 import '../provider/saved_theme_provider.dart';
+import '../provider/search_theme_provider.dart';
 import '../provider/theme_provider.dart';
 
 class DateGridPage extends StatefulWidget {
@@ -168,92 +171,97 @@ class _DateGridPageState extends State<DateGridPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => BottomSheetProvider()),
-            // ChangeNotifierProvider(
-            //     create: (_) =>
-            //         ReviewProvider()..fetchReviews(theme.id)), //⭐ 리뷰 불러오기
-            // ChangeNotifierProvider(
-            //     create: (_) => ThemeDetailProvider()
-            //       ..fetchThemeDetail(theme.id)), //⭐ 테마 상세정보 불러오기
-          ],
-          child: Consumer<BottomSheetProvider>(
-            builder: (context, provider, _) {
-              return Container(
-                padding: const EdgeInsets.all(16.0),
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => provider.setTabIndex(0),
-                              child: Text(
-                                '상세 정보',
-                                style: TextStyle(
-                                  color: provider.selectedTabIndex == 0
-                                      ? const Color(0xffD90206)
-                                      : Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+        return SafeArea(
+          child: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => BottomSheetProvider()),
+              // ChangeNotifierProvider(
+              //     create: (_) =>
+              //         ReviewProvider()..fetchReviews(theme.id)), //⭐ 리뷰 불러오기
+              // ChangeNotifierProvider(
+              //     create: (_) => ThemeDetailProvider()
+              //       ..fetchThemeDetail(theme.id)), //⭐ 테마 상세정보 불러오기
+            ],
+            child: Consumer<BottomSheetProvider>(
+              builder: (context, provider, _) {
+                return Container(
+                  padding: const EdgeInsets.all(16.0),
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => provider.setTabIndex(0),
+                                child: Text(
+                                  '상세 정보',
+                                  style: TextStyle(
+                                    color: provider.selectedTabIndex == 0
+                                        ? const Color(0xffD90206)
+                                        : Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              onTap: () => provider.setTabIndex(1),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '리뷰',
-                                    style: TextStyle(
-                                      color: provider.selectedTabIndex == 1
-                                          ? const Color(0xffD90206)
-                                          : Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Transform.translate(
-                                    offset: const Offset(0, -9),
-                                    child: Text(
-                                      '+${theme.reviewCount.toString()}',
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                onTap: () => provider.setTabIndex(1),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '리뷰',
                                       style: TextStyle(
-                                          color: provider.selectedTabIndex == 1
-                                              ? const Color(0xffD90206)
-                                              : Colors.white,
-                                          fontSize: 11),
+                                        color: provider.selectedTabIndex == 1
+                                            ? const Color(0xffD90206)
+                                            : Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  )
-                                ],
+                                    Transform.translate(
+                                      offset: const Offset(0, -9),
+                                      child: Text(
+                                        '+${theme.reviewCount.toString()}',
+                                        style: TextStyle(
+                                            color:
+                                                provider.selectedTabIndex == 1
+                                                    ? const Color(0xffD90206)
+                                                    : Colors.white,
+                                            fontSize: 11),
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const Divider(color: Color(0xff363636)),
-                    Expanded(
-                      child: provider.selectedTabIndex == 0
-                          ? _buildDetailContent(theme)
-                          : _buildReviewContent(theme),
-                    ),
-                    provider.selectedTabIndex == 1 ? const SizedBox() : const SizedBox(),
-                    const SizedBox(height: 30),
-                    _buildActionButtons(theme)
-                  ],
-                ),
-              );
-            },
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const Divider(color: Color(0xff363636)),
+                      Expanded(
+                        child: provider.selectedTabIndex == 0
+                            ? _buildDetailContent(theme)
+                            : _buildReviewContent(theme),
+                      ),
+                      provider.selectedTabIndex == 1
+                          ? const SizedBox()
+                          : const SizedBox(),
+                      const SizedBox(height: 30),
+                      _buildActionButtons(theme)
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
@@ -496,7 +504,8 @@ class _DateGridPageState extends State<DateGridPage> {
                   spacing: 8,
                   children: review.tagNames.map((tag) {
                     return Chip(
-                      label: Text(tag, style: const TextStyle(color: Colors.white)),
+                      label: Text(tag,
+                          style: const TextStyle(color: Colors.white)),
                       backgroundColor: const Color(0xff2D0000),
                       side: const BorderSide(color: Color(0xffD90206)),
                     );
@@ -564,11 +573,21 @@ class _DateGridPageState extends State<DateGridPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final filterThemeProvider = Provider.of<FilterThemeProvider>(context);
+    final searchThemeProvider = Provider.of<SearchThemeProvider>(context);
     // final availableTimeProvider = Provider.of<AvailableTimeProvider>(context);
-
-    final themesToShow = filterThemeProvider.filteredThemes.isNotEmpty
-        ? filterThemeProvider.filteredThemes
-        : themeProvider.themes;
+    debugPrint("isSearching: ${searchThemeProvider.isSearching}");
+    debugPrint("isFiltered: ${filterThemeProvider.isFiltered}");
+    debugPrint("isDateSelected: ${searchThemeProvider.dateSelected}");
+    final themesToShow = searchThemeProvider.isSearching
+        ? searchThemeProvider.searchResults
+        // ? (searchThemeProvider.dateSelected
+        //     ? (searchThemeProvider.searchResults)
+        //     : (filterThemeProvider.isFiltered
+        //         ? filterThemeProvider.filteredThemes
+        //         : themeProvider.themes))
+        : (filterThemeProvider.isFiltered
+            ? filterThemeProvider.filteredThemes
+            : themeProvider.themes);
     final dates = _generateDateRange();
 
     return Scaffold(
@@ -616,6 +635,14 @@ class _DateGridPageState extends State<DateGridPage> {
                                 listen: false);
                             themeProvider.loadInitialThemes(
                                 date: _selectedDate);
+                            // Provider.of<SearchThemeProvider>(context,
+                            //         listen: false)
+                            //     .setDate(_selectedDate);
+                            Provider.of<SearchThemeProvider>(context,
+                                    listen: false)
+                                .searchThemes(
+                                    date: date,
+                                    filterProvider: FilterProvider());
                           });
                         },
                         child: Container(
@@ -628,7 +655,8 @@ class _DateGridPageState extends State<DateGridPage> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(15),
                             border: isToday
-                                ? Border.all(color: const Color(0xffD90206), width: 1)
+                                ? Border.all(
+                                    color: const Color(0xffD90206), width: 1)
                                 : Border.all(color: Colors.transparent),
                           ),
                           child: Column(
@@ -683,6 +711,26 @@ class _DateGridPageState extends State<DateGridPage> {
         toolbarHeight: 130,
       ),
       body: Consumer<ThemeProvider>(builder: (context, provider, child) {
+        if (themesToShow.isEmpty &&
+            Provider.of<SearchThemeProvider>(context).isSearching) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                '결과가 없습니다.',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ),
+          );
+        }
+
+        if (provider.isLoading) {
+          return const Center(
+              child: CircularProgressIndicator(
+            color: AppColors.red6,
+          ));
+        }
+
         return ListView.builder(
           controller: _scrollController,
           itemCount: themesToShow.length,
@@ -731,7 +779,7 @@ class _DateGridPageState extends State<DateGridPage> {
                                       theme.image,
                                       width: 144,
                                       height: 161,
-                                      fit: BoxFit.cover,
+                                      fit: BoxFit.fill,
                                     ),
                                   ),
 
@@ -786,7 +834,8 @@ class _DateGridPageState extends State<DateGridPage> {
                                         ),
                                         const SizedBox(width: 4),
                                         Transform.translate(
-                                          offset: const Offset(0, 1.5), // 위로 1px 이동
+                                          offset:
+                                              const Offset(0, 1.5), // 위로 1px 이동
                                           child: Text(
                                             '(${theme.reviewCount.toString()})', // 리뷰 수
                                             style: const TextStyle(
@@ -890,32 +939,30 @@ class _DateGridPageState extends State<DateGridPage> {
                                 ],
                               ),
                             ),
-                            Container(
-                              child: IconButton(
-                                alignment: const Alignment(-1.0, -1.65),
-                                padding: const EdgeInsets.all(0),
-                                icon: Icon(
-                                  context
-                                          .watch<SavedThemeProvider>()
-                                          .isSaved(theme.id)
-                                      ? Icons.bookmark // 저장된 경우
-                                      : Icons.bookmark_border, // 저장 안 된 경우
-                                  color: context
-                                          .watch<SavedThemeProvider>()
-                                          .isSaved(theme.id)
-                                      ? const Color(0xffD90206) // 빨간색
-                                      : Colors.white, // 기본색
-                                  size: 24,
-                                ),
-                                onPressed: () async {
-                                  final savedThemeProvider =
-                                      context.read<SavedThemeProvider>();
-
-                                  // ⭐ 여기 한 줄이면 끝난다!
-                                  await savedThemeProvider
-                                      .toggleSaveTheme(theme.id);
-                                },
+                            IconButton(
+                              alignment: const Alignment(-1.0, -1.65),
+                              padding: const EdgeInsets.all(0),
+                              icon: Icon(
+                                context
+                                        .watch<SavedThemeProvider>()
+                                        .isSaved(theme.id)
+                                    ? Icons.bookmark // 저장된 경우
+                                    : Icons.bookmark_border, // 저장 안 된 경우
+                                color: context
+                                        .watch<SavedThemeProvider>()
+                                        .isSaved(theme.id)
+                                    ? const Color(0xffD90206) // 빨간색
+                                    : Colors.white, // 기본색
+                                size: 24,
                               ),
+                              onPressed: () async {
+                                final savedThemeProvider =
+                                    context.read<SavedThemeProvider>();
+
+                                // ⭐ 여기 한 줄이면 끝난다!
+                                await savedThemeProvider
+                                    .toggleSaveTheme(theme.id);
+                              },
                             )
                           ],
                         ),

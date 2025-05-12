@@ -6,6 +6,7 @@ import 'package:scrd/page/search_theme.dart';
 import '../components/buttons.dart';
 import '../model/review_upload.dart';
 import '../provider/select_theme_provider.dart';
+import '../provider/tag_selection_provider.dart';
 import '../provider/upload_provider.dart';
 
 class UploadPage extends StatefulWidget {
@@ -81,6 +82,7 @@ class _UploadPageState extends State<UploadPage> {
   @override
   void dispose() {
     _selectThemeProvider.clearSelectedTheme(); // ✅ 안전하게 사용
+    Provider.of<TagSelectionProvider>(context, listen: false).clearTags();
     super.dispose();
   }
 
@@ -171,105 +173,111 @@ class _UploadPageState extends State<UploadPage> {
   @override
   Widget build(BuildContext context) {
     final selectThemeProvider = Provider.of<SelectThemeProvider>(context);
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Scaffold(
           backgroundColor: Colors.black,
-          automaticallyImplyLeading: false,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              IconButton(
-                  onPressed: () {
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            automaticallyImplyLeading: false,
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                    onPressed: () {
+                      Provider.of<SelectThemeProvider>(context, listen: false)
+                          .clearSelectedTheme();
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                    )),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => isRecruitment = true);
+                    selectThemeProvider.setMode(UploadMode.recruitment); // ⭐
                     Provider.of<SelectThemeProvider>(context, listen: false)
                         .clearSelectedTheme();
-                    Navigator.of(context).pop();
                   },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                  )),
-              GestureDetector(
-                onTap: () {
-                  setState(() => isRecruitment = true);
-                  selectThemeProvider.setMode(UploadMode.recruitment); // ⭐
-                  Provider.of<SelectThemeProvider>(context, listen: false)
-                      .clearSelectedTheme();
-                },
-                child: Text(
-                  "일행 모집",
-                  style: TextStyle(
-                    color: isRecruitment ? const Color(0xFFD90206) : Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                  child: Text(
+                    "일행 모집",
+                    style: TextStyle(
+                      color: isRecruitment
+                          ? const Color(0xFFD90206)
+                          : Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 13),
-              GestureDetector(
-                onTap: () {
-                  setState(() => isRecruitment = false);
-                  selectThemeProvider.setMode(UploadMode.review); // ⭐
-                  Provider.of<SelectThemeProvider>(context, listen: false)
-                      .clearSelectedTheme();
-                },
-                child: Text(
-                  "리뷰",
-                  style: TextStyle(
-                    color: !isRecruitment ? const Color(0xFFD90206) : Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                const SizedBox(width: 13),
+                GestureDetector(
+                  onTap: () {
+                    setState(() => isRecruitment = false);
+                    selectThemeProvider.setMode(UploadMode.review); // ⭐
+                    Provider.of<SelectThemeProvider>(context, listen: false)
+                        .clearSelectedTheme();
+                  },
+                  child: Text(
+                    "리뷰",
+                    style: TextStyle(
+                      color: !isRecruitment
+                          ? const Color(0xFFD90206)
+                          : Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isRecruitment) _buildReviewSection(),
-              if (isRecruitment) _buildRecruitmentSection(),
-            ],
-          ),
-        ),
-        bottomNavigationBar: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: (isRecruitment && isFormCompleteForRecruitment()) ||
-                    (!isRecruitment && isFormCompleteForReview())
-                ? () {
-                    // 등록 로직
-                    _submitForm();
-                  }
-                : null,
-            style: ButtonStyle(
-              backgroundColor:
-                  WidgetStateProperty.resolveWith<Color>((states) {
-                if (states.contains(WidgetState.disabled)) {
-                  return Colors.grey;
-                }
-                return red;
-              }),
-              padding: WidgetStateProperty.all<EdgeInsets>(
-                const EdgeInsets.symmetric(vertical: 17),
-              ),
-              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(0),
-                    topRight: Radius.circular(0),
-                  ),
-                ),
-              ),
+              ],
             ),
-            child: const Text(
-              "등록하기",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isRecruitment) _buildReviewSection(),
+                if (isRecruitment) _buildRecruitmentSection(),
+              ],
+            ),
+          ),
+          bottomNavigationBar: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (isRecruitment && isFormCompleteForRecruitment()) ||
+                      (!isRecruitment && isFormCompleteForReview())
+                  ? () {
+                      // 등록 로직
+                      _submitForm();
+                    }
+                  : null,
+              style: ButtonStyle(
+                backgroundColor:
+                    WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return Colors.grey;
+                  }
+                  return red;
+                }),
+                padding: WidgetStateProperty.all<EdgeInsets>(
+                  const EdgeInsets.symmetric(vertical: 17),
+                ),
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(0),
+                      topRight: Radius.circular(0),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text(
+                "등록하기",
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
           ),
         ),
@@ -607,7 +615,9 @@ class _UploadPageState extends State<UploadPage> {
                 : const Color(0xFF121212), // 배경색 (원 안)
             border: Border.all(
                 width: 2,
-                color: isSelected == true ? Colors.white : const Color(0xFF777676)),
+                color: isSelected == true
+                    ? Colors.white
+                    : const Color(0xFF777676)),
           ),
           child: Center(
             child: ColorFiltered(
@@ -619,7 +629,9 @@ class _UploadPageState extends State<UploadPage> {
                 iconPath,
                 width: 15,
                 height: 15,
-                color: isSelected == false ? const Color(0xff777676) : Colors.black,
+                color: isSelected == false
+                    ? const Color(0xff777676)
+                    : Colors.black,
                 colorBlendMode: BlendMode.srcIn,
                 fit: BoxFit.contain,
               ),
@@ -640,8 +652,9 @@ class _UploadPageState extends State<UploadPage> {
                 fontWeight: FontWeight.w700)),
         const SizedBox(width: 15),
         Icon(Icons.check_circle,
-            color:
-                isChecked == true ? const Color(0xFFD90206) : const Color(0xFF777676),
+            color: isChecked == true
+                ? const Color(0xFFD90206)
+                : const Color(0xFF777676),
             size: 26),
       ],
     );
@@ -765,7 +778,8 @@ class _UploadPageState extends State<UploadPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: isAm ? const Color(0xffB80205) : Colors.transparent,
+                        color:
+                            isAm ? const Color(0xffB80205) : Colors.transparent,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10),
@@ -793,7 +807,9 @@ class _UploadPageState extends State<UploadPage> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: !isAm ? const Color(0xffB80205) : Colors.transparent,
+                        color: !isAm
+                            ? const Color(0xffB80205)
+                            : Colors.transparent,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(10),
                           bottomRight: Radius.circular(10),

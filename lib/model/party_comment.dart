@@ -17,14 +17,15 @@ class PartyComment {
 
   factory PartyComment.fromJson(Map<String, dynamic> json) {
     return PartyComment(
-      id: json['id'],
-      content: json['content'],
-      writerName: json['writerName'],
-      parentId: json['parentId'],
-      regDate: json['regDate'],
+      id: json['id'] ?? 0,
+      content: json['content'] ?? '',
+      writerName: json['writerName'] ?? '',
+      parentId: json['parentId'] ?? 0,
+      regDate: json['regDate'] ?? '',
       children: (json['children'] as List<dynamic>)
-          .map((e) => PartyComment.fromJson(e))
-          .toList(),
+              .map((e) => PartyComment.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }

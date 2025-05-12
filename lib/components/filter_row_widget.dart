@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../provider/filter_provider.dart';
 import '../provider/filter_theme_provider.dart';
+import '../provider/region_count_provider.dart';
+import '../provider/search_theme_provider.dart';
 
 class FilterRowWidget extends StatefulWidget {
   final double height;
@@ -42,6 +44,10 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     final filterThemeProvider =
         Provider.of<FilterThemeProvider>(context, listen: false);
     await filterThemeProvider.fetchFilteredThemes(filterProvider);
+    final searchThemeProvider =
+        Provider.of<SearchThemeProvider>(context, listen: false);
+    await searchThemeProvider.searchThemes(
+        date: searchThemeProvider.selectedDate, filterProvider: filterProvider);
   }
 
   void _toggleActivity() async {
@@ -54,6 +60,10 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     final filterThemeProvider =
         Provider.of<FilterThemeProvider>(context, listen: false);
     await filterThemeProvider.fetchFilteredThemes(filterProvider);
+    final searchThemeProvider =
+        Provider.of<SearchThemeProvider>(context, listen: false);
+    await searchThemeProvider.searchThemes(
+        date: searchThemeProvider.selectedDate, filterProvider: filterProvider);
   }
 
   void _showRegionBottomSheet(BuildContext context) async {
@@ -64,7 +74,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => const RegionBottomSheet(),
+      builder: (context) => SafeArea(child: const RegionBottomSheet()),
     );
 
     if (result != null) {
@@ -142,6 +152,12 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
                           .fetchFilteredThemes(filterProvider);
                       debugPrint(
                           'Filtered themes: ${filterThemeProvider.filteredThemes}');
+                      final searchThemeProvider =
+                          Provider.of<SearchThemeProvider>(context,
+                              listen: false);
+                      await searchThemeProvider.searchThemes(
+                          date: searchThemeProvider.selectedDate,
+                          filterProvider: filterProvider);
                     },
                     child: _buildCircleIconButton('assets/button/filter.png'))
               ],
@@ -159,38 +175,40 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
     final isSelected = selectedValue != null &&
         selectedValue != '전체' &&
         selectedValue != '난이도';
-    return Container(
-      height: widget.height,
-      padding: const EdgeInsets.only(left: 7, right: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.white : Colors.transparent,
-        border: Border.all(color: isSelected ? Colors.black : Colors.white),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          num == 1
-              ? Image.asset(
-                  'assets/icon/puzzle_red.png',
-                  width: 16,
-                  color: isSelected ? Colors.black : Colors.white,
-                )
-              : const SizedBox.shrink(),
-          const SizedBox(width: 3),
-          Text(
-            selectedValue ?? defaultLabel,
-            style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white,
-              fontSize: widget.fontSize,
-              fontWeight: widget.fontWeight,
+    return SafeArea(
+      child: Container(
+        height: widget.height,
+        padding: const EdgeInsets.only(left: 7, right: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          border: Border.all(color: isSelected ? Colors.black : Colors.white),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            num == 1
+                ? Image.asset(
+                    'assets/icon/puzzle_red.png',
+                    width: 16,
+                    color: isSelected ? Colors.black : Colors.white,
+                  )
+                : const SizedBox.shrink(),
+            const SizedBox(width: 3),
+            Text(
+              selectedValue ?? defaultLabel,
+              style: TextStyle(
+                color: isSelected ? Colors.black : Colors.white,
+                fontSize: widget.fontSize,
+                fontWeight: widget.fontWeight,
+              ),
             ),
-          ),
-          num == 0
-              ? Icon(Icons.arrow_drop_down,
-                  color: isSelected ? Colors.black : Colors.white, size: 16)
-              : const SizedBox.shrink(),
-        ],
+            num == 0
+                ? Icon(Icons.arrow_drop_down,
+                    color: isSelected ? Colors.black : Colors.white, size: 16)
+                : const SizedBox.shrink(),
+          ],
+        ),
       ),
     );
   }
@@ -265,189 +283,241 @@ class RegionBottomSheet extends StatefulWidget {
 class _RegionBottomSheetState extends State<RegionBottomSheet> {
   int selectedMainIndex = 0;
   String? selectedSubRegion;
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      Provider.of<RegionCountProvider>(context, listen: false)
+          .fetchRegionCounts();
+    });
+  }
 
   final List<String> mainRegions = [
     '전국',
     '서울',
     '경기/인천',
-    '대전/충청',
-    '대구/경북',
-    '부산/울산',
-    '경남',
-    '광주/전라',
-    '강원',
+    '충청',
+    '경상',
+    '전라',
     '제주',
   ];
 
   final Map<String, List<String>> subRegions = {
     '전국': ['전체'],
-    '서울': ['전체', '강남', '건대', '노원', '성수', '신촌', '잠실', '홍대', '성수', '노원'],
-    '경기/인천': ['전체', '수원', '안산', '건대'],
-    '대구': ['전체'],
-    '대전': ['전체'],
-    '부산': ['전체'],
-    '전북': ['전체'],
-    '충북': ['전체'],
-    '충남': ['전체']
+    '서울': [
+      '강남',
+      '건대',
+      '노원',
+      '성수',
+      '신촌',
+      '잠실',
+      '홍대',
+      '성수',
+      '신림',
+      '혜화',
+      '동작',
+      '명동'
+    ],
+    '경기/인천': ['전체', '수원', '안산', '안양', '인천', '고양', '화성', '평택'],
+    '충청': ['대전', '천안', '충주'],
+    '경상': ['부산', '대구'],
+    '전라': ['익산', '전주'],
+    '제주': ['제주', '서귀포'],
   };
 
   @override
   Widget build(BuildContext context) {
+    final regionProvider = Provider.of<RegionCountProvider>(context);
     final currentSub = subRegions[mainRegions[selectedMainIndex]] ?? [];
     debugPrint('$selectedMainIndex');
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.63,
-      // height: MediaQuery.of(context).size.width - 80,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            height: 20,
-          ),
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.63,
+        // height: MediaQuery.of(context).size.width - 80,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 20,
+            ),
 
-          /// 제목 및 닫기 버튼
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  SizedBox(
-                    width: 12,
-                  ),
-                  Text("지역",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-              IconButton(
-                padding: const EdgeInsets.only(bottom: 20, right: 25),
-                icon: const Icon(Icons.close, color: Colors.white),
-                alignment: const Alignment(-1, 1),
-                onPressed: () => Navigator.pop(context),
-              )
-            ],
-          ),
-          Expanded(
-            child: Row(
+            /// 제목 및 닫기 버튼
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Main region list
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: mainRegions.length,
-                    itemBuilder: (context, index) {
-                      final isSelected = selectedMainIndex == index;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedMainIndex = index),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSelected ? Colors.white : Colors.black,
-                            border: const Border(
-                              bottom: BorderSide(
-                                width: 0.50,
-                                color: Color(0xFF363636),
-                              ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: Text(
-                              mainRegions[index],
-                              style: TextStyle(
-                                color: isSelected
-                                    ? const Color(0xffD90206)
-                                    : Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                const Row(
+                  children: [
+                    SizedBox(
+                      width: 12,
+                    ),
+                    Text("지역",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
+                  ],
                 ),
-                // Sub region list
-                Expanded(
-                  flex: 2,
-                  child: ListView.builder(
-                    itemCount: currentSub.length,
-                    itemBuilder: (context, index) {
-                      final sub = currentSub[index];
-                      final isSelected = sub == selectedSubRegion;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedSubRegion = sub),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected ? const Color(0xffD90206) : Colors.black,
-                            border: const Border(
-                              bottom: BorderSide(
-                                width: 0.50,
-                                color: Color(0xFF363636),
-                              ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                sub,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Text('12', style: TextStyle(color: Colors.white)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                IconButton(
+                  padding: const EdgeInsets.only(bottom: 20, right: 25),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  alignment: const Alignment(-1, 1),
+                  onPressed: () => Navigator.pop(context),
+                )
               ],
             ),
-          ),
-          // ✅ 지역 선택 완료 버튼
-          // ✅ 지역 선택 완료 버튼
-          GestureDetector(
-            onTap: selectedSubRegion != null
-                ? () async {
-                    final region = selectedMainIndex > 0
-                        ? (selectedSubRegion != '전체'
-                            ? '$selectedSubRegion'
-                            : '${mainRegions[selectedMainIndex]} $selectedSubRegion')
-                        : '전체';
-
-                    final filterProvider =
-                        Provider.of<FilterProvider>(context, listen: false);
-                    filterProvider.setRegion(region == '전체' ? null : region);
-                    final filterThemeProvider =
-                        Provider.of<FilterThemeProvider>(context,
-                            listen: false);
-                    await filterThemeProvider
-                        .fetchFilteredThemes(filterProvider);
-                    Navigator.pop(context, region); // 닫기만 해도 됨 (적용은 오른쪽 버튼에서)
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              alignment: Alignment.center,
-              color: selectedSubRegion != null
-                  ? const Color(0xffD90206)
-                  : const Color(0xff515151),
-              child: const Text('선택 완료',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
+            Expanded(
+              child: Row(
+                children: [
+                  // Main region list
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: mainRegions.length,
+                      itemBuilder: (context, index) {
+                        final isSelected = selectedMainIndex == index;
+                        return GestureDetector(
+                          onTap: () =>
+                              setState(() => selectedMainIndex = index),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white : Colors.black,
+                              border: const Border(
+                                bottom: BorderSide(
+                                  width: 0.50,
+                                  color: Color(0xFF363636),
+                                ),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: Text(
+                                mainRegions[index],
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? const Color(0xffD90206)
+                                      : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Sub region list
+                  Expanded(
+                    flex: 2,
+                    child: ListView.builder(
+                      itemCount: currentSub.length,
+                      itemBuilder: (context, index) {
+                        final sub = currentSub[index];
+                        final isSelected = sub == selectedSubRegion;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedSubRegion = sub),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xffD90206)
+                                  : Colors.black,
+                              border: const Border(
+                                bottom: BorderSide(
+                                  width: 0.50,
+                                  color: Color(0xFF363636),
+                                ),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  sub,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Consumer<RegionCountProvider>(
+                                  builder: (context, provider, _) {
+                                    if (mainRegions[selectedMainIndex] ==
+                                            '전국' &&
+                                        sub == '전체') {
+                                      final count = provider.total ?? 0;
+                                      return Text(
+                                        '$count',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      );
+                                    } else {
+                                      final count =
+                                          provider.getCountByLocation(sub);
+                                      debugPrint('count: $count');
+                                      return Text(
+                                        '$count',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      );
+                                    }
+                                  },
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            // ✅ 지역 선택 완료 버튼
+            // ✅ 지역 선택 완료 버튼
+            GestureDetector(
+              onTap: selectedSubRegion != null
+                  ? () async {
+                      final region = selectedMainIndex > 0
+                          ? (selectedSubRegion != '전체'
+                              ? '$selectedSubRegion'
+                              : '${mainRegions[selectedMainIndex]} $selectedSubRegion')
+                          : '전체';
+
+                      final filterProvider =
+                          Provider.of<FilterProvider>(context, listen: false);
+                      final searchThemeProvider =
+                          Provider.of<SearchThemeProvider>(context,
+                              listen: false);
+                      final filterThemeProvider =
+                          Provider.of<FilterThemeProvider>(context,
+                              listen: false);
+
+                      filterProvider.setRegion(region == '전체' ? null : region);
+                      !Provider.of<SearchThemeProvider>(context, listen: false)
+                              .isSearching
+                          ? await filterThemeProvider
+                              .fetchFilteredThemes(filterProvider)
+                          : await searchThemeProvider.searchThemes(
+                              date: searchThemeProvider.selectedDate,
+                              filterProvider: filterProvider);
+                      Navigator.pop(context, region); // 닫기만 해도 됨 (적용은 오른쪽 버튼에서)
+                    }
+                  : null,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                alignment: Alignment.center,
+                color: selectedSubRegion != null
+                    ? const Color(0xffD90206)
+                    : const Color(0xff515151),
+                child: const Text('선택 완료',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -477,222 +547,241 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
   Widget build(BuildContext context) {
     // final double sliderWidth = MediaQuery.of(context).size.width - 80;
 
-    return Container(
-      padding: const EdgeInsets.only(top: 20),
-      decoration: const BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// 제목 및 닫기 버튼
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  SizedBox(
-                    width: 12,
-                  ),
-                  Text("난이도",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-              IconButton(
-                padding: const EdgeInsets.only(bottom: 20, right: 25),
-                icon: const Icon(Icons.close, color: Colors.white),
-                alignment: const Alignment(-1, 1),
-                onPressed: () => Navigator.pop(context),
-              )
-            ],
-          ),
-
-          const Divider(color: Color(0xff363636)),
-          const SizedBox(
-            height: 25,
-          ),
-
-          /// 난이도 설명 텍스트
-          ...difficultyDescriptions.entries.map((entry) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 6,
-                ),
-                child: Row(
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.only(top: 20),
+        decoration: const BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 제목 및 닫기 버튼
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
                   children: [
-                    const SizedBox(
-                      width: 50,
+                    SizedBox(
+                      width: 12,
                     ),
-                    Image.asset(
-                      'assets/icon/puzzle_red.png',
-                      width: 20,
-                      color: const Color(0xffD90206),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      "${entry.key}  :  ${entry.value}",
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                    )
+                    Text("난이도",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
-              )),
-
-          const SizedBox(height: 30),
-
-          /// 퍼즐 + 슬라이더 (Stack)
-          SizedBox(
-            height: 100, // ← Stack 높이 충분히 확보
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final sliderWidth = constraints.maxWidth - 40; // 20 padding * 2
-
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    /// RangeSlider
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          thumbColor: Colors.white, // 🔥 커서(thumb) 색상
-                          // overlayColor: Colors.white.withOpacity(0.2),
-                          // thumbShape: RoundSliderThumbShape(
-                          //   // enabledThumbRadius: 8,
-                          //   elevation: 2,
-                          // ),
-                          trackHeight: 4,
-                          activeTrackColor: const Color(0xffD90206),
-                          inactiveTrackColor: Colors.white30,
-                          // overlayShape:
-                          //     RoundSliderOverlayShape(overlayRadius: 16),
-                        ),
-                        child: RangeSlider(
-                          values: RangeValues(_startDifficulty, _endDifficulty),
-                          min: 1,
-                          max: 5,
-                          divisions: 4,
-                          // labels: RangeLabels(
-                          //   _startDifficulty.round().toString(),
-                          //   _endDifficulty.round().toString(),
-                          // ),
-                          onChanged: (values) {
-                            setState(() {
-                              _startDifficulty = values.start.roundToDouble();
-                              _endDifficulty = values.end.roundToDouble();
-                              _difficultySelected = true;
-                            });
-                            debugPrint('selected : $_difficultySelected');
-                          },
-                        ),
-                      ),
-                    ),
-
-                    /// 시작 퍼즐 아이콘 + 숫자
-                    Positioned(
-                      left: 30 + (_startDifficulty - 1) / 4 * sliderWidth - 10,
-                      bottom: 60,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/icon/puzzle_red.png',
-                            width: 24,
-                            color: const Color(0xffD90206),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${_startDifficulty.round()}",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    /// 끝 퍼즐 아이콘 + 숫자
-                    Positioned(
-                      left: 0 + (_endDifficulty - 1) / 4 * sliderWidth - 10,
-                      bottom: 60,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/icon/puzzle_red.png',
-                            width: 24,
-                            color: const Color(0xffD90206),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${_endDifficulty.round()}",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
+                IconButton(
+                  padding: const EdgeInsets.only(bottom: 20, right: 25),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  alignment: const Alignment(-1, 1),
+                  onPressed: () => Navigator.pop(context),
+                )
+              ],
             ),
-          ),
-          const SizedBox(height: 30),
 
-          /// 완료 버튼
-          // Container(
-          //   width: double.infinity,
-          //   padding: EdgeInsets.symmetric(vertical: 16),
-          //   alignment: Alignment.center,
-          //   child: ElevatedButton(
-          //     style: ElevatedButton.styleFrom(
-          //       backgroundColor:
-          //           _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
-          //     ),
-          //     onPressed:
-          //         _difficultySelected ? () => Navigator.pop(context) : null,
-          //     child: Text("선택 완료",
-          //         style: TextStyle(
-          //             color: Colors.white, fontWeight: FontWeight.bold)),
-          //   ),
-          // ),
-          // ✅ 난이도 선택 완료 버튼
-          // ✅ 난이도 선택 완료 버튼
-          GestureDetector(
-            onTap: _difficultySelected
-                ? () async {
-                    final minLevel = _startDifficulty;
-                    final maxLevel = _endDifficulty;
+            const Divider(color: Color(0xff363636)),
+            const SizedBox(
+              height: 25,
+            ),
 
-                    final filterProvider =
-                        Provider.of<FilterProvider>(context, listen: false);
+            /// 난이도 설명 텍스트
+            ...difficultyDescriptions.entries.map((entry) => Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 50,
+                      ),
+                      Image.asset(
+                        'assets/icon/puzzle_red.png',
+                        width: 20,
+                        color: const Color(0xffD90206),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "${entry.key}  :  ${entry.value}",
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 13),
+                      )
+                    ],
+                  ),
+                )),
 
-                    if (minLevel == 1 && maxLevel == 5) {
-                      filterProvider.setLevel(null, null);
-                      Navigator.pop(context, '난이도'); // 🎯 난이도 초기화
-                    } else {
+            const SizedBox(height: 30),
+
+            /// 퍼즐 + 슬라이더 (Stack)
+            SizedBox(
+              height: 100, // ← Stack 높이 충분히 확보
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final sliderWidth =
+                      constraints.maxWidth - 40; // 20 padding * 2
+
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      /// RangeSlider
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            thumbColor: Colors.white, // 🔥 커서(thumb) 색상
+                            // overlayColor: Colors.white.withOpacity(0.2),
+                            // thumbShape: RoundSliderThumbShape(
+                            //   // enabledThumbRadius: 8,
+                            //   elevation: 2,
+                            // ),
+                            trackHeight: 4,
+                            activeTrackColor: const Color(0xffD90206),
+                            inactiveTrackColor: Colors.white30,
+                            // overlayShape:
+                            //     RoundSliderOverlayShape(overlayRadius: 16),
+                          ),
+                          child: RangeSlider(
+                            values:
+                                RangeValues(_startDifficulty, _endDifficulty),
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            // labels: RangeLabels(
+                            //   _startDifficulty.round().toString(),
+                            //   _endDifficulty.round().toString(),
+                            // ),
+                            onChanged: (values) {
+                              setState(() {
+                                _startDifficulty = values.start.roundToDouble();
+                                _endDifficulty = values.end.roundToDouble();
+                                _difficultySelected = true;
+                              });
+                              debugPrint('selected : $_difficultySelected');
+                            },
+                          ),
+                        ),
+                      ),
+
+                      /// 시작 퍼즐 아이콘 + 숫자
+                      Positioned(
+                        left:
+                            30 + (_startDifficulty - 1) / 4 * sliderWidth - 10,
+                        bottom: 60,
+                        child: Row(
+                          children: [
+                            Image.asset(
+                              'assets/icon/puzzle_red.png',
+                              width: 24,
+                              color: const Color(0xffD90206),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              "${_startDifficulty.round()}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      /// 끝 퍼즐 아이콘 + 숫자
+                      Positioned(
+                        left: 0 + (_endDifficulty - 1) / 4 * sliderWidth - 10,
+                        bottom: 60,
+                        child: Row(
+                          children: [
+                            Image.asset(
+                              'assets/icon/puzzle_red.png',
+                              width: 24,
+                              color: const Color(0xffD90206),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              "${_endDifficulty.round()}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            /// 완료 버튼
+            // Container(
+            //   width: double.infinity,
+            //   padding: EdgeInsets.symmetric(vertical: 16),
+            //   alignment: Alignment.center,
+            //   child: ElevatedButton(
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor:
+            //           _difficultySelected ? Color(0xffD90206) : Color(0xff515151),
+            //     ),
+            //     onPressed:
+            //         _difficultySelected ? () => Navigator.pop(context) : null,
+            //     child: Text("선택 완료",
+            //         style: TextStyle(
+            //             color: Colors.white, fontWeight: FontWeight.bold)),
+            //   ),
+            // ),
+            // ✅ 난이도 선택 완료 버튼
+            // ✅ 난이도 선택 완료 버튼
+            GestureDetector(
+              onTap: _difficultySelected
+                  ? () async {
+                      final minLevel = _startDifficulty;
+                      final maxLevel = _endDifficulty;
+
+                      final filterProvider =
+                          Provider.of<FilterProvider>(context, listen: false);
                       final filterThemeProvider =
                           Provider.of<FilterThemeProvider>(context,
                               listen: false);
-                      await filterThemeProvider
-                          .fetchFilteredThemes(filterProvider);
-                      filterProvider.setLevel(minLevel, maxLevel);
-                      Navigator.pop(context,
-                          '${minLevel.round()} ~ ${maxLevel.round()}'); // 🎯 난이도 범위 넘긴다
+                      final searchThemeProvider =
+                          Provider.of<SearchThemeProvider>(context,
+                              listen: false);
+                      if (minLevel == 1 && maxLevel == 5) {
+                        filterProvider.setLevel(null, null);
+                        Navigator.pop(context, '난이도'); // 🎯 난이도 초기화
+                      } else {
+                        !Provider.of<SearchThemeProvider>(context,
+                                    listen: false)
+                                .isSearching
+                            ? {
+                                await filterThemeProvider
+                                    .fetchFilteredThemes(filterProvider),
+                                filterProvider.setLevel(minLevel, maxLevel)
+                              }
+                            : {
+                                await searchThemeProvider.searchThemes(
+                                    date: searchThemeProvider.selectedDate,
+                                    filterProvider: filterProvider)
+                              };
+                        Navigator.pop(context,
+                            '${minLevel.round()} ~ ${maxLevel.round()}'); // 🎯 난이도 범위 넘긴다
+                      }
                     }
-                  }
-                : null,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              alignment: Alignment.center,
-              color:
-                  _difficultySelected ? const Color(0xffD90206) : const Color(0xff515151),
-              child: const Text('선택 완료',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
+                  : null,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                alignment: Alignment.center,
+                color: _difficultySelected
+                    ? const Color(0xffD90206)
+                    : const Color(0xff515151),
+                child: const Text('선택 완료',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

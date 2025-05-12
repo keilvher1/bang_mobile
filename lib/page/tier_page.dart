@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scrd/utils/api_server.dart';
 
 class TierPage extends StatefulWidget {
   const TierPage({super.key});
@@ -17,6 +18,21 @@ class _TierPageState extends State<TierPage> {
     {"title": "KEY", "description": "Less Than 150"},
     {"title": "IRIS", "description": "Less Than 200"},
   ];
+
+  int? reviewCount;
+
+  @override
+  void initState() {
+    super.initState();
+    loadReviewCount();
+  }
+
+  Future<void> loadReviewCount() async {
+    final count = await ApiService().fetchReviewCount(); // 위에서 만든 함수 사용
+    setState(() {
+      reviewCount = count;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +74,7 @@ class _TierPageState extends State<TierPage> {
                           color: Colors.white, width: 2), // 흰색 테두리 추가
                     ),
                   ),
-                  child: const Text("HOLMES (259)",
+                  child: Text("HOLMES ($reviewCount)",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,

@@ -35,6 +35,7 @@ class PartyCommentProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         debugPrint("Response: ${response.body}");
+        debugPrint("Response Headers: ${response.bodyBytes}");
         final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as List;
         _comments = decoded.map((e) => PartyComment.fromJson(e)).toList();
       } else {

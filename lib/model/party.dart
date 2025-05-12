@@ -23,15 +23,15 @@ class Party {
 
   factory Party.fromJson(Map<String, dynamic> json) {
     return Party(
-      id: json['id'],
-      image: json['image'],
-      title: json['title'],
-      themeTitle: json['themeTitle'],
-      location: json['location'],
-      isClosed: json['isClosed'],
+      id: json['id'] ?? 0,
+      image: json['image'] ?? '',
+      title: json['title'] ?? '',
+      themeTitle: json['themeTitle'] ?? '',
+      location: json['location'] ?? '',
+      isClosed: json['isClosed'] ?? false,
       deadline: DateTime.parse(json['deadline']),
-      currentParticipants: json['currentParticipants'],
-      maxParticipants: json['maxParticipants'],
+      currentParticipants: json['currentParticipants'] ?? 0,
+      maxParticipants: json['maxParticipants'] ?? 0,
     );
   }
 }

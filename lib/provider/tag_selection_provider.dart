@@ -25,4 +25,9 @@ class TagSelectionProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void clearTags() {
+    _selectedTags.clear();
+    notifyListeners();
+  }
 }
