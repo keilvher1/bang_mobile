@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../model/saved_theme_model.dart';
 import '../utils/api_server.dart';
 
@@ -16,15 +17,15 @@ class SavedThemeProvider with ChangeNotifier {
   }
 
   /// ✅ 처음에 저장된 테마 목록을 서버에서 가져와서 로컬에 저장
-  Future<void> fetchAndSetSavedThemes() async {
+  Future<void> fetchAndSetSavedThemes({DateTime? date}) async {
     try {
       _loading = true;
       notifyListeners();
-
-      final savedThemes = await ApiService().fetchSavedThemes();
-      _savedThemeIds =
-          savedThemes.map((theme) => theme.themeId).toSet(); // id만 저장
-      final fetchedThemes = await ApiService().fetchSavedThemes();
+      var formatted = DateFormat('yyyy-MM-dd').format(date ?? DateTime.now());
+      final savedThemes = await ApiService().fetchSavedThemes(date: formatted);
+      _savedThemeIds = savedThemes.map((theme) => theme.id).toSet(); // id만 저장
+      final fetchedThemes =
+          await ApiService().fetchSavedThemes(date: formatted);
       _savedThemes = fetchedThemes;
     } catch (e) {
       debugPrint('Error fetching saved themes: $e');

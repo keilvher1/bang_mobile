@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scrd/page/home_page.dart';
 
 import '../components/buttons.dart';
 import '../model/review.dart';
+import '../provider/jwt_provider.dart';
 import '../provider/my_review_provider.dart';
 
 class MyReviewPage extends StatefulWidget {
@@ -24,8 +26,37 @@ class _MyReviewPageState extends State<MyReviewPage> {
     });
   }
 
+  String getRelativeTime(String regDateString) {
+    try {
+      if (regDateString.isEmpty) return "";
+
+      final regDate = DateTime.parse(regDateString); // ✅ ISO 8601 처리
+      final now = DateTime.now();
+      final diff = now.difference(regDate);
+
+      if (diff.inSeconds < 60) {
+        return " ·방금 전";
+      } else if (diff.inMinutes < 60) {
+        return " ·${diff.inMinutes}분 전";
+      } else if (diff.inHours < 24) {
+        return " ·${diff.inHours}시간 전";
+      } else if (diff.inDays < 30) {
+        return " ·${diff.inDays}일 전";
+      } else if (diff.inDays < 365) {
+        return " ·${(diff.inDays / 30).floor()}개월 전";
+      } else {
+        return " ·${(diff.inDays / 365).floor()}년 전";
+      }
+    } catch (e) {
+      print("날짜 파싱 오류: $e");
+      return "날짜 오류";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userId = context.watch<JwtProvider>().jwt?.userId;
+    debugPrint("userId: $userId");
     List<String> tags = ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"];
     void addTag(String tag) {
       setState(() {
@@ -100,12 +131,6 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                   backgroundColor: Colors.white, // 배경색 설정
                                   radius: 45, // 아바타 크기 설정
                                   child: ClipOval(
-                                    // child: Image.network(
-                                    //   'https://handonglikelionpegbackend.s3.ap-northeast-2.amazonaws.com/scrd/%E1%84%80%E1%85%B3%E1%84%85%E1%85%B5%E1%86%B7%E1%84%8C%E1%85%A1+%E1%84%8B%E1%85%A5%E1%86%B8%E1%84%89%E1%85%B3%E1%86%AB%E3%84%B4+%E1%84%89%E1%85%A1%E1%86%BC%E1%84%8C%E1%85%A1.jpeg',
-                                    //   width: 144,
-                                    //   height: 161,
-                                    //   fit: BoxFit.cover,
-                                    // ),
                                     child: Image.network(
                                       review.themeImage,
                                       width: 144,
@@ -131,7 +156,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width -
-                                              140,
+                                              160,
                                           child: Row(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -139,43 +164,57 @@ class _MyReviewPageState extends State<MyReviewPage> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               SizedBox(
-                                                width: 200,
-                                                child: Text(
-                                                  review.themeTitle,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 16,
-                                                    fontFamily: 'Inter',
-                                                    fontWeight: FontWeight.w700,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
+                                                width: 190,
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      review.themeTitle,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontFamily: 'Inter',
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Text(
+                                                      getRelativeTime(
+                                                          review.regDate),
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color:
+                                                            Color(0xffC9C9C9),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  // TODO: 액션
-                                                },
-                                                child: const Icon(
-                                                  Icons.more_vert,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
+                                              ReviewItem(
+                                                review: review,
+                                                userId: userId!,
+                                                isSaved: true,
+                                              )
                                             ],
                                           ),
                                         ),
                                         const SizedBox(height: 2), // 간격 추가
                                         Row(
                                           children: [
-                                            Icon(
+                                            const Icon(
                                               Icons.location_on,
                                               color: Color(0xFFB9B9B9),
                                               size: 14,
                                             ),
                                             Text(
-                                              '${review.themeLocation} | ${review.themeBranch}',
-                                              style: TextStyle(
+                                              ' ${review.themeLocation} | ${review.themeBranch}',
+                                              style: const TextStyle(
                                                 color: Color(0xFFB9B9B9),
                                                 fontSize: 12,
                                                 fontFamily: 'Inter',
@@ -242,7 +281,7 @@ class _MyReviewPageState extends State<MyReviewPage> {
                             const SizedBox(height: 15),
                             Text(
                               review.text,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.white70, fontSize: 13),
                             ),
                           ],

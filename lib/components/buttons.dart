@@ -130,7 +130,9 @@ Widget hashtagCenter(
                 child: Text(
                   tag,
                   style: TextStyle(
-                    color: isSelected ? const Color(0xFFD90206) : const Color(0xffD8D8D8),
+                    color: isSelected
+                        ? const Color(0xFFD90206)
+                        : const Color(0xffD8D8D8),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -177,8 +179,7 @@ class SelectThemeButton extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.location_on,
-                          color: Colors.grey, size: 22),
+                      Icon(Icons.location_on, color: Colors.grey, size: 22),
                       SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +335,8 @@ class _CustomPersistentDatePickerState
           ),
         ),
         child: CalendarDatePicker(
-          initialDate: _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
+          initialDate:
+              _selectedDate ?? DateTime.now().add(const Duration(days: 1)),
           firstDate: DateTime.now(),
           lastDate: DateTime(2100),
           onDateChanged: _onDateChanged,
@@ -436,24 +438,74 @@ Widget sectionTitle2(String titleText) {
   );
 }
 
+// class SelectableHashtagRow extends StatelessWidget {
+//   final Map<int, String> tags;
+//   final List<int> selectedTagIds;
+//
+//   const SelectableHashtagRow(
+//       {super.key, required this.tags, required this.selectedTagIds});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final selectedTags = context.watch<TagSelectionProvider>().selectedTags;
+//     final selectedTagIds = context.watch<TagSelectionProvider>().tagIds;
+//     final tagProvider = context.read<TagSelectionProvider>();
+//
+//     return SingleChildScrollView(
+//       scrollDirection: Axis.horizontal,
+//       child: Row(
+//         children: tags.entries.map((entry) {
+//           final id = entry.key;
+//           final tag = entry.value;
+//           final isSelected = selectedTags.contains(tag);
+//           final containTagId = selectedTagIds.contains(id);
+//           return GestureDetector(
+//             onTap: () => tagProvider.toggleTag(tag, id),
+//             child: Container(
+//               margin: const EdgeInsets.only(right: 8),
+//               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+//               decoration: BoxDecoration(
+//                 color: isSelected
+//                     ? const Color(0xFFD90206)
+//                     : const Color(0xFF515151),
+//                 borderRadius: BorderRadius.circular(4),
+//               ),
+//               child: Text(
+//                 tag,
+//                 style: const TextStyle(
+//                   color: Color(0xffD8D8D8),
+//                   fontSize: 13,
+//                   fontWeight: FontWeight.w600,
+//                 ),
+//               ),
+//             ),
+//           );
+//         }).toList(),
+//       ),
+//     );
+//   }
+// }
 class SelectableHashtagRow extends StatelessWidget {
-  final List<String> tags;
+  final Map<int, String> tags; // ID, 이름
 
   const SelectableHashtagRow({super.key, required this.tags});
 
   @override
   Widget build(BuildContext context) {
     final selectedTags = context.watch<TagSelectionProvider>().selectedTags;
+    final selectedTagIds = context.watch<TagSelectionProvider>().tagIds;
     final tagProvider = context.read<TagSelectionProvider>();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: tags.map((tag) {
-          final isSelected = selectedTags.contains(tag);
+        children: tags.entries.map((entry) {
+          final tagId = entry.key;
+          final tagName = entry.value;
+          final isSelected = selectedTags.contains(tagName);
 
           return GestureDetector(
-            onTap: () => tagProvider.toggleTag(tag),
+            onTap: () => tagProvider.toggleTag(tagName, tagId),
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
@@ -464,7 +516,7 @@ class SelectableHashtagRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                tag,
+                tagName,
                 style: const TextStyle(
                   color: Color(0xffD8D8D8),
                   fontSize: 13,

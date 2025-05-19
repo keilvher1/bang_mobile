@@ -75,7 +75,7 @@ class _TierPageState extends State<TierPage> {
                     ),
                   ),
                   child: Text("HOLMES ($reviewCount)",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'NeueHaasDisplay',

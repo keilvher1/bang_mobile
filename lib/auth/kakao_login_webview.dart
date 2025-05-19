@@ -1,11 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:scrd/auth/secure_storage.dart';
 import 'package:scrd/page/nav_page.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
 
-import '../provider/notification_provider.dart';
 import '../utils/endpoint.dart';
 
 class KakaoLoginWebView extends StatefulWidget {
@@ -66,14 +66,31 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
       );
   }
 
+  String? extractUserIdFromToken(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final payloadMap = json.decode(decoded);
+
+      return payloadMap['userId'].toString(); // 또는 'id' 키에 맞게 변경
+    } catch (e) {
+      debugPrint("Token decode error: $e");
+      return null;
+    }
+  }
+
   // 서버로 Authorization Code 전달
   void _sendCodeToServer(String authCode) async {
     try {
       final response = await http.get(
         Uri.parse(
-            "${ApiConstants.loginUrl}:8080/scrd/auth/kakao-login?code=$authCode"),
+            "${ApiConstants.loginUrl}/scrd/auth/kakao-login?code=$authCode"),
         headers: {
-          "Origin": "${ApiConstants.loginUrl}:8000",
+          "Origin": ApiConstants.loginUrl,
         },
       );
 
@@ -106,7 +123,16 @@ class _KakaoLoginWebViewState extends State<KakaoLoginWebView> {
           //   Provider.of<NotificationProvider>(context, listen: false)
           //       .initialize(context, savedAccessToken);
           // }
+          final userId = extractUserIdFromToken(accessToken);
 
+          if (userId != null && savedAccessToken != null) {
+            debugPrint("User ID: $userId");
+            await storage.saveToken('user-id', userId); // 원하는 키로 저장
+            await storage.saveToken('jwt', savedAccessToken);
+            debugPrint("User ID 저장됨: $userId");
+          } else {
+            debugPrint("토큰에서 userId 추출 실패");
+          }
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const NavPage()),
             (Route<dynamic> route) => false,

@@ -19,83 +19,114 @@ class _FindGroupPageState extends State<FindGroupPage> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   bool checkedRecruit = false;
+  late ScrollController _scrollController;
 
-  bool get _dateSelected => selectedDate != null;
-  late PartyProvider _partyProvider;
-
+  TextEditingController searchController = TextEditingController();
+  String _searchQuery = '';
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PartyProvider>(context, listen: false).fetchInitialParties();
+      Provider.of<PartyProvider>(context, listen: false)
+          .fetchInitialParties(_searchQuery);
     });
+    _scrollController = ScrollController()
+      ..addListener(() {
+        if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
+          final partyProvider =
+              Provider.of<PartyProvider>(context, listen: false);
+
+          if (!partyProvider.isLoading && partyProvider.hasMore) {
+            debugPrint("📦 추가 데이터 불러오는 중...");
+            partyProvider.fetchMoreParties(_searchQuery);
+          }
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    return SafeArea(
+      child: Scaffold(
         backgroundColor: Colors.black,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          '일행 찾기',
-          style: TextStyle(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          automaticallyImplyLeading: false,
+          title: const Text(
+            '일행 찾기',
+            style: TextStyle(
+                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      body: Consumer<PartyProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        body: Consumer<PartyProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (provider.parties.isEmpty) {
-            return const Center(child: Text("모집글이 없습니다."));
-          }
+            // if (provider.parties.isEmpty) {
+            //   return const Center(child: Text("모집글이 없습니다."));
+            // }
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSearchBar(),
-                const SizedBox(height: 16),
-                _buildFilterRow(),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: provider.parties.length,
-                    itemBuilder: (context, index) {
-                      final party = provider.parties[index];
-                      return _buildGroupCard(party);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-        // child: Padding(
-        //   padding: const EdgeInsets.all(16.0),
-        //   child: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       _buildSearchBar(),
-        //       const SizedBox(height: 16),
-        //       _buildFilterRow(),
-        //       const SizedBox(height: 16),
-        //       Expanded(
-        //         child: ListView.builder(
-        //           itemCount: 4,
-        //           itemBuilder: (context, index) {
-        //             return _buildGroupCard();
-        //           },
-        //         ),
-        //       )
-        //     ],
-        //   ),
-        // ),
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSearchBar(),
+                  const SizedBox(height: 16),
+                  _buildFilterRow(),
+                  const SizedBox(height: 16),
+                  if (provider.parties.isEmpty)
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.2),
+                        const Center(
+                          child: Text("모집글이 없습니다.",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  if (provider.parties.isNotEmpty)
+                    Expanded(
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: provider.parties.length,
+                        itemBuilder: (context, index) {
+                          final party = provider.parties[index];
+                          if (_searchQuery.isNotEmpty) {
+                            if (party.themeTitle
+                                .toLowerCase()
+                                .contains(_searchQuery)) {
+                              return _buildGroupCard(party);
+                            }
+                          } else {
+                            if (party.isClosed == false) {
+                              return _buildGroupCard(party);
+                            }
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -107,19 +138,25 @@ class _FindGroupPageState extends State<FindGroupPage> {
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: const Row(
+      child: Row(
         children: [
           Expanded(
             child: TextField(
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
+              controller: searchController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
                 hintText: '테마명으로 검색하기',
                 hintStyle: TextStyle(color: Colors.white70),
                 border: InputBorder.none,
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
             ),
           ),
-          Icon(Icons.search, color: Colors.white)
+          const Icon(Icons.search, color: Colors.white)
         ],
       ),
     );
@@ -131,69 +168,73 @@ class _FindGroupPageState extends State<FindGroupPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          SizedBox(width: 12),
-                          Text("날짜",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.only(bottom: 20, right: 25),
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        alignment: const Alignment(-1, 1),
-                        onPressed: () => Navigator.pop(context),
-                      )
-                    ],
-                  ),
-                  CustomPersistentDatePicker(
-                    initialDate: DateTime.now(),
-                    onDateSelected: (newDate) {
-                      debugPrint(
-                          "선택된 날짜: \${DateFormat('MM/dd/yyyy').format(newDate)}");
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() => selectedDate = newDate);
-                        setModalState(() {});
-                      });
-                    },
-                  ),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    alignment: Alignment.center,
-                    color: selectedDate != null
-                        ? const Color(0xffD90206)
-                        : const Color(0xff515151),
-                    child: GestureDetector(
-                      onTap: selectedDate != null
-                          ? () => Navigator.pop(context)
-                          : null,
-                      child: const Text('선택 완료',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+        return SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            SizedBox(width: 12),
+                            Text("날짜",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        IconButton(
+                          padding: const EdgeInsets.only(bottom: 20, right: 25),
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          alignment: const Alignment(-1, 1),
+                          onPressed: () => Navigator.pop(context),
+                        )
+                      ],
                     ),
-                  ),
-                ],
-              );
-            },
+                    CustomPersistentDatePicker(
+                      initialDate: DateTime.now(),
+                      onDateSelected: (newDate) {
+                        debugPrint("선택된 날짜: $newDate");
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          setState(() => selectedDate = newDate);
+                          setModalState(() {});
+                        });
+                        context
+                            .read<PartyProvider>()
+                            .fetchPartyByDeadline(newDate);
+                      },
+                    ),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      alignment: Alignment.center,
+                      color: selectedDate != null
+                          ? const Color(0xffD90206)
+                          : const Color(0xff515151),
+                      child: GestureDetector(
+                        onTap: selectedDate != null
+                            ? () => Navigator.pop(context)
+                            : null,
+                        child: const Text('선택 완료',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -201,18 +242,19 @@ class _FindGroupPageState extends State<FindGroupPage> {
   }
 
   Widget _buildFilterRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildFilterChip(Icons.refresh, '날짜'),
-        GestureDetector(
-            onTap: () {
-              setState(() {
-                checkedRecruit = !checkedRecruit;
-              });
-            },
-            child: _buildCheckIcon('모집마감 안보기', checkedRecruit)),
-      ],
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          checkedRecruit = !checkedRecruit;
+        });
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildFilterChip(Icons.refresh, '날짜'),
+          _buildCheckIcon('모집마감 안보기', checkedRecruit),
+        ],
+      ),
     );
   }
 
@@ -321,7 +363,9 @@ class _FindGroupPageState extends State<FindGroupPage> {
   Widget _buildGroupCard(Party party) {
     final formattedDate = DateFormat('M월 d일(E) HH:mm', 'ko_KR')
         .format(party.deadline); // DateTime -> 원하는 형식의 문자열
-
+    if (checkedRecruit == true && party.deadline.isBefore(DateTime.now())) {
+      return Container();
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(10),
@@ -435,8 +479,10 @@ class _FindGroupPageState extends State<FindGroupPage> {
                             const SizedBox(width: 6),
                             Text(
                               formattedDate,
-                              style: const TextStyle(
-                                color: Color(0xFFD90206),
+                              style: TextStyle(
+                                color: party.deadline.isBefore(DateTime.now())
+                                    ? Colors.grey
+                                    : const Color(0xFFD90206),
                                 fontSize: 11,
                               ),
                             ),
@@ -467,6 +513,9 @@ class _FindGroupPageState extends State<FindGroupPage> {
                     ),
                     GestureDetector(
                       onTap: () {
+                        if (party.deadline.isBefore(DateTime.now())) {
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -478,15 +527,19 @@ class _FindGroupPageState extends State<FindGroupPage> {
                         width: 63,
                         height: 26,
                         decoration: ShapeDecoration(
-                          color: const Color(0xFFD90206),
+                          color: party.deadline.isBefore(DateTime.now())
+                              ? Colors.grey
+                              : const Color(0xFFD90206),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            '상세보기',
-                            style: TextStyle(
+                            party.deadline.isBefore(DateTime.now())
+                                ? '마감'
+                                : '상세보기',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,

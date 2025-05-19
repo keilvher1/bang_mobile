@@ -4,14 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/components/style.dart';
+import 'package:scrd/provider/jwt_provider.dart';
+import 'package:scrd/utils/api_server.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../auth/secure_storage.dart';
 import '../components/filter_row_widget.dart';
+import '../model/review.dart';
 import '../model/theme.dart';
 import '../provider/bottomsheet_provider.dart';
 import '../provider/detail_provider.dart';
 import '../provider/filter_provider.dart';
 import '../provider/filter_theme_provider.dart';
+import '../provider/my_review_provider.dart';
 import '../provider/review_provider.dart';
 import '../provider/saved_theme_provider.dart';
 import '../provider/search_theme_provider.dart';
@@ -382,10 +387,53 @@ class _DateGridPageState extends State<DateGridPage> {
     );
   }
 
+  String getRelativeTime(String regDateString) {
+    try {
+      if (regDateString.isEmpty) return "";
+
+      final regDate = DateTime.parse(regDateString); // ✅ ISO 8601 처리
+      final now = DateTime.now();
+      final diff = now.difference(regDate);
+
+      if (diff.inSeconds < 60) {
+        return "·방금 전";
+      } else if (diff.inMinutes < 60) {
+        return "·${diff.inMinutes}분 전";
+      } else if (diff.inHours < 24) {
+        return "·${diff.inHours}시간 전";
+      } else if (diff.inDays < 30) {
+        return "·${diff.inDays}일 전";
+      } else if (diff.inDays < 365) {
+        return "·${(diff.inDays / 30).floor()}개월 전";
+      } else {
+        return "·${(diff.inDays / 365).floor()}년 전";
+      }
+    } catch (e) {
+      print("날짜 파싱 오류: $e");
+      return "날짜 오류";
+    }
+  }
+
+  String formatClearTime(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      if (parts.length != 2) return '';
+
+      final minutes = int.tryParse(parts[0]) ?? 0;
+      final seconds = int.tryParse(parts[1]) ?? 0;
+
+      return '${minutes}분 ${seconds}초';
+    } catch (e) {
+      return '';
+    }
+  }
+
   Widget _buildReviewContent(ThemeModel theme) {
     final reviewProvider = Provider.of<ReviewProvider>(context, listen: true);
     final reviews = reviewProvider.reviews; // ✨ 받아온 리뷰 목록
-
+    SecureStorage storage = SecureStorage();
+    final userId = context.watch<JwtProvider>().jwt?.userId;
+    debugPrint("My userId: $userId");
     if (reviewProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -399,128 +447,179 @@ class _DateGridPageState extends State<DateGridPage> {
       );
     }
 
-    return ListView.builder(
-      itemCount: reviews.length,
-      itemBuilder: (context, index) {
-        final review = reviews[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 유저 정보 표시
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer<ReviewProvider>(
+      builder: (context, reviewProvider, _) {
+        return ListView.builder(
+          itemCount: reviews.length,
+          itemBuilder: (context, index) {
+            final review = reviews[index];
+            debugPrint("리뷰 해시태크 : ${review.tagNames}");
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 유저 정보 표시
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 20,
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/level/level${review.userTier}.png',
-                            width: 25,
-                            height: 25,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            review.nickName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xffC9C9C9),
-                              fontWeight: FontWeight.bold,
+                          CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 20,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/level/level${review.userTier}.png',
+                                width: 25,
+                                height: 25,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            '방탈출 기록 표시 가능 (ex. 3개월 전)', // 여기 원하면 날짜 추가 가능
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xffC9C9C9),
-                              fontWeight: FontWeight.bold,
-                            ),
+                          const SizedBox(width: 18),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    review.nickName,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xffC9C9C9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    getRelativeTime(review.regDate),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xffC9C9C9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  // const Text(
+                                  //   '방탈출 기록 표시 가능 (ex. 3개월 전)', // 여기 원하면 날짜 추가 가능
+                                  //   style: TextStyle(
+                                  //     fontSize: 11,
+                                  //     color: Color(0xffC9C9C9),
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${(review.isSuccessful ? '성공' : '실패')} | 힌트 ${review.hintUsageCount}개 | ${formatClearTime(review.clearTime)}',
+                                    style: TextStyle(
+                                      color: const Color(0xFFC8C8C8),
+                                      fontSize: 11,
+                                      fontFamily: 'Pretendard',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
                           ),
                         ],
                       ),
+                      if (userId != null)
+                        ReviewItem(
+                          review: review,
+                          userId: userId,
+                          isSaved: false,
+                        )
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert,
-                        color: Colors.white, size: 20),
-                    onPressed: () {},
+                  const SizedBox(height: 16),
+                  // 평점, 난이도, 공포도, 활동성
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildRatingItem(
+                        label: '평점',
+                        value: review.stars.toStringAsFixed(0),
+                        fontSize: 14,
+                        color: const Color(0xffD90206),
+                      ),
+                      const SizedBox(width: 14),
+                      _buildRatingItem(
+                        label: '난이도',
+                        value: review.level.toString(),
+                        imagePath: 'assets/icon/puzzle_red.png',
+                        imageSize: 23,
+                        color: const Color(0xffD90206),
+                      ),
+                      const SizedBox(width: 14),
+                      _buildRatingItem(
+                        label: '공포도',
+                        imagePath: review.horror == 0
+                            ? 'assets/icon/ghost.png'
+                            : 'assets/icon/ghost_in.png',
+                        imageSize: 23,
+                      ),
+                      const SizedBox(width: 14),
+                      _buildRatingItem(
+                        label: '활동성',
+                        imagePath: review.activity == 0
+                            ? 'assets/icon/shoe_in.png'
+                            : 'assets/icon/shoe.png',
+                        imageSize: 23,
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 15),
+
+                  // 태그 리스트 (있으면)
+                  if (review.tagNames.isNotEmpty)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: review.tagNames.map((tag) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: ShapeDecoration(
+                              color: const Color(0xFF515151),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: Color(0xFFD8D8D8),
+                                fontSize: 11,
+                                fontFamily: 'Pretendard',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  if (review.tagNames.isNotEmpty) const SizedBox(height: 15),
+                  // 리뷰 텍스트
+                  Text(
+                    review.text,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(color: Color(0xff363636)),
                 ],
               ),
-              const SizedBox(height: 13),
-
-              // 평점, 난이도, 공포도, 활동성
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRatingItem(
-                    label: '평점',
-                    value: review.stars.toStringAsFixed(0),
-                    fontSize: 14,
-                    color: const Color(0xffD90206),
-                  ),
-                  const SizedBox(width: 14),
-                  _buildRatingItem(
-                    label: '난이도',
-                    value: review.level.toString(),
-                    imagePath: 'assets/icon/puzzle_red.png',
-                    imageSize: 23,
-                    color: const Color(0xffD90206),
-                  ),
-                  const SizedBox(width: 14),
-                  _buildRatingItem(
-                    label: '공포도',
-                    imagePath: review.horror == 0
-                        ? 'assets/icon/ghost.png'
-                        : 'assets/icon/ghost_in.png',
-                    imageSize: 23,
-                  ),
-                  const SizedBox(width: 14),
-                  _buildRatingItem(
-                    label: '활동성',
-                    imagePath: review.activity == 0
-                        ? 'assets/icon/shoe_in.png'
-                        : 'assets/icon/shoe.png',
-                    imageSize: 23,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-
-              // 태그 리스트 (있으면)
-              if (review.tagNames.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  children: review.tagNames.map((tag) {
-                    return Chip(
-                      label: Text(tag,
-                          style: const TextStyle(color: Colors.white)),
-                      backgroundColor: const Color(0xff2D0000),
-                      side: const BorderSide(color: Color(0xffD90206)),
-                    );
-                  }).toList(),
-                ),
-              if (review.tagNames.isNotEmpty) const SizedBox(height: 15),
-              // 리뷰 텍스트
-              Text(
-                review.text,
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              const Divider(color: Color(0xff363636)),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -635,9 +734,6 @@ class _DateGridPageState extends State<DateGridPage> {
                                 listen: false);
                             themeProvider.loadInitialThemes(
                                 date: _selectedDate);
-                            // Provider.of<SearchThemeProvider>(context,
-                            //         listen: false)
-                            //     .setDate(_selectedDate);
                             Provider.of<SearchThemeProvider>(context,
                                     listen: false)
                                 .searchThemes(
@@ -867,7 +963,7 @@ class _DateGridPageState extends State<DateGridPage> {
                                     ),
                                   ),
                                   Text(
-                                    theme.branch,
+                                    " ${theme.brand} | ${theme.branch}",
                                     style: const TextStyle(
                                         color: Colors.white70, fontSize: 11),
                                     softWrap: true,
@@ -1010,6 +1106,113 @@ class _DateGridPageState extends State<DateGridPage> {
           },
         );
       }),
+    );
+  }
+}
+
+class ReviewItem extends StatefulWidget {
+  final Review review;
+  final int userId;
+  final bool isSaved;
+
+  const ReviewItem({
+    super.key,
+    required this.review,
+    required this.userId,
+    required this.isSaved,
+  });
+
+  @override
+  State<ReviewItem> createState() => _ReviewItemState();
+}
+
+class _ReviewItemState extends State<ReviewItem> {
+  bool _showMenu = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final review = widget.review;
+    final userId = widget.userId;
+    debugPrint("리뷰 아이템 아이디 : ${widget.review.userId}");
+    debugPrint("리뷰 아이템 유저아이디 : ${widget.userId}");
+    debugPrint("isSaved : ${widget.isSaved}");
+    return Stack(
+      //crossAxisAlignment: CrossAxisAlignment.end,
+      clipBehavior: Clip.none,
+      children: [
+        review.userId == userId || widget.isSaved
+            ? IconButton(
+                icon:
+                    const Icon(Icons.more_vert, color: Colors.white, size: 20),
+                onPressed: () {
+                  setState(() {
+                    _showMenu = !_showMenu;
+                  });
+                },
+              )
+            : const SizedBox(),
+
+        // 조건부로 삭제/취소 버튼 메뉴 표시
+        if (_showMenu)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Container(
+              width: 50,
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(50), // 타원형
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      final success = await ApiService().deleteReview(
+                        review.id,
+                      );
+                      if (success) {
+                        debugPrint('리뷰 삭제 성공');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('리뷰가 삭제되었습니다.')),
+                        );
+                        setState(() {
+                          _showMenu = false;
+                        });
+                        // 필요 시 상태 갱신
+                        if (widget.isSaved) {
+                          // 북마크에서 삭제
+                          Provider.of<MyReviewProvider>(context, listen: false)
+                              .removeReviewById(review.id);
+                        } else {
+                          // 리뷰 목록에서 삭제
+                          Provider.of<ReviewProvider>(context, listen: false)
+                              .removeReviewById(review.id);
+                        }
+                      }
+                    },
+                    child: const Text(
+                      '삭제',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const Divider(height: 0, color: Colors.white24),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showMenu = false;
+                      });
+                    },
+                    child: const Text(
+                      '취소',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

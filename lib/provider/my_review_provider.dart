@@ -24,4 +24,9 @@ class MyReviewProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void removeReviewById(int id) {
+    _myReviews.removeWhere((review) => review.id == id);
+    notifyListeners();
+  }
 }

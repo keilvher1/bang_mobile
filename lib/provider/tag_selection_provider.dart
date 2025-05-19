@@ -3,12 +3,17 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class TagSelectionProvider extends ChangeNotifier {
   final Set<String> _selectedTags = {};
+  final List<int> _tagIds = [];
 
   Set<String> get selectedTags => _selectedTags;
+  List<int> get tagIds => _tagIds;
 
-  void toggleTag(String tag) {
+  void toggleTag(String tag, int tagId) {
+    debugPrint("Toggling tag: $tag");
+    debugPrint("Current selected tags: $_selectedTags");
     if (_selectedTags.contains(tag)) {
       _selectedTags.remove(tag);
+      _tagIds.remove(tagId);
     } else {
       if (_selectedTags.length >= 5) {
         Fluttertoast.showToast(
@@ -22,11 +27,13 @@ class TagSelectionProvider extends ChangeNotifier {
         return;
       }
       _selectedTags.add(tag);
+      _tagIds.add(tagId);
     }
     notifyListeners();
   }
 
   void clearTags() {
+    debugPrint("Clearing selected tags");
     _selectedTags.clear();
     notifyListeners();
   }

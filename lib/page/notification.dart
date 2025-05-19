@@ -302,7 +302,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5)),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         "수락하기",
                         style: TextStyle(
@@ -325,15 +325,15 @@ class _NotificationPageState extends State<NotificationPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 4),
                       decoration: ShapeDecoration(
-                        color: Color(0xff515151) /* red-6 */,
+                        color: const Color(0xff515151) /* red-6 */,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5)),
                       ),
-                      child: Center(
-                          child: const Text(
+                      child: const Center(
+                          child: Text(
                         "거절하기",
                         style: TextStyle(
-                          color: const Color(0xFF9D9D9D),
+                          color: Color(0xFF9D9D9D),
                           fontSize: 12,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,

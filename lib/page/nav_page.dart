@@ -133,19 +133,19 @@ class _NavPageState extends State<NavPage> {
                         ),
                       ),
                     AnimatedSwitcher(
-                        duration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
                         transitionBuilder: (child, animation) {
                           return SlideTransition(
                             position: Tween<Offset>(
-                              begin: Offset(1, 0), // 오른쪽에서
-                              end: Offset(0, 0), // 제자리로
+                              begin: const Offset(1, 0), // 오른쪽에서
+                              end: const Offset(0, 0), // 제자리로
                             ).animate(animation),
                             child: child,
                           );
                         },
                         child: _showSearch
                             ? SizedBox(
-                                key: ValueKey('search_field'),
+                                key: const ValueKey('search_field'),
                                 width: 200,
                                 child: TextField(
                                   controller: _searchController,
@@ -169,7 +169,7 @@ class _NavPageState extends State<NavPage> {
                                   },
                                 ),
                               )
-                            : SizedBox()
+                            : const SizedBox()
                         // : IconButton(
                         //     key: ValueKey('search_icon'),
                         //     icon: const Icon(

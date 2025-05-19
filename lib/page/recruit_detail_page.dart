@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:scrd/model/partyDetail.dart';
-import 'package:scrd/utils/api_server.dart';
-import 'package:scrd/utils/endpoint.dart';
 
 import '../model/party_comment.dart';
+import '../provider/jwt_provider.dart';
 import '../provider/party_comment_provider.dart';
 import '../provider/party_detail_provider.dart';
 import '../provider/party_join_provider.dart';
@@ -13,7 +12,7 @@ import '../provider/party_join_provider.dart';
 class RecruitDetailPage extends StatefulWidget {
   final int partyId;
 
-  const RecruitDetailPage({Key? key, required this.partyId}) : super(key: key);
+  const RecruitDetailPage({super.key, required this.partyId});
 
   @override
   State<RecruitDetailPage> createState() => _RecruitDetailPageState();
@@ -21,10 +20,9 @@ class RecruitDetailPage extends StatefulWidget {
 
 class _RecruitDetailPageState extends State<RecruitDetailPage> {
   final bool hasComments = false;
-  TextEditingController _commentController = TextEditingController();
-  int? _parentCommentId; // null이면 일반 댓글
+  final TextEditingController _commentController = TextEditingController();
   int? replyingToCommentId; // 대댓글 대상 ID (없으면 null)
-  //RecruitDetailPage({super.key, this.hasComments = false});
+  bool _showMenu = false;
   @override
   void initState() {
     super.initState();
@@ -69,6 +67,9 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
   @override
   Widget build(BuildContext context) {
     final detail = Provider.of<PartyDetailProvider>(context).party;
+    final userId = context.watch<JwtProvider>().jwt?.userId;
+    debugPrint('userId: $userId');
+    debugPrint('user Id: ${detail?.writerId}');
     if (detail == null) {
       return const Center(child: CircularProgressIndicator()); // 또는 다른 로딩/에러 위젯
     }
@@ -97,10 +98,55 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          )
+          userId == detail.writerId
+              ? IconButton(
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _showMenu = !_showMenu;
+                    });
+                  },
+                )
+              : const SizedBox(),
+          if (_showMenu)
+            Container(
+              width: 120,
+              margin: const EdgeInsets.only(right: 8.0),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        // 예: 삭제 함수 실행
+                        print('삭제 요청');
+                      },
+                      child: const Text(
+                        '삭제하기',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    const Divider(height: 0, color: Colors.white24),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showMenu = false;
+                        });
+                      },
+                      child: const Text(
+                        '취소하기',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -132,7 +178,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                           children: [
                             Text(
                               detail.writerNickname.toString(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xFFFFF8F8),
                                 fontSize: 12,
                                 fontFamily: 'Inter',
@@ -156,10 +202,10 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: EdgeInsets.only(left: 8.0),
+                    padding: const EdgeInsets.only(left: 8.0),
                     child: Text(
                       detail.title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontFamily: 'Inter',
@@ -170,13 +216,13 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                   ),
                   const SizedBox(height: 10),
                   Padding(
-                    padding: EdgeInsets.only(left: 8.0),
+                    padding: const EdgeInsets.only(left: 8.0),
                     child: Row(
                       children: [
-                        Text('날짜 ',
+                        const Text('날짜 ',
                             style:
                                 TextStyle(color: Colors.white, fontSize: 14)),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Text(
@@ -193,13 +239,13 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                   ),
                   const SizedBox(height: 6),
                   Padding(
-                    padding: EdgeInsets.only(left: 8.0),
+                    padding: const EdgeInsets.only(left: 8.0),
                     child: Row(
                       children: [
-                        Text('인원 ',
+                        const Text('인원 ',
                             style:
                                 TextStyle(color: Colors.white, fontSize: 14)),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Text.rich(
@@ -207,14 +253,14 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                             children: [
                               TextSpan(
                                 text: detail.currentParticipants.toString(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 13,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              TextSpan(
+                              const TextSpan(
                                 text: ' ',
                                 style: TextStyle(
                                   color: Color(0xFF9D9D9D),
@@ -225,7 +271,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                               ),
                               TextSpan(
                                 text: '/ ${detail.maxParticipants}인',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFFA3A3A3),
                                   fontSize: 13,
                                   fontFamily: 'Inter',
@@ -240,9 +286,9 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                   ),
                   const SizedBox(height: 40),
                   Padding(
-                    padding: EdgeInsets.only(left: 8.0),
+                    padding: const EdgeInsets.only(left: 8.0),
                     child: Text(detail.content,
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                        style: const TextStyle(color: Colors.white, fontSize: 14)),
                   ),
                   const SizedBox(height: 97),
                   const Divider(
@@ -276,7 +322,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                                     color: Colors.white)
                                 : Text(
                                     !joinProvider.hasJoined ? '신청하기' : '신청취소',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 13,
                                       fontFamily: 'Inter',
@@ -320,7 +366,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                             ),
                           ),
                         ),
-                        Positioned(
+                        const Positioned(
                           left: 0,
                           top: 0,
                           child: SizedBox(
@@ -342,9 +388,10 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                   const SizedBox(height: 12),
                   Consumer<PartyCommentProvider>(
                     builder: (context, provider, _) {
-                      if (provider.isLoading)
-                        return CircularProgressIndicator();
-                      if (provider.comments.isEmpty)
+                      if (provider.isLoading) {
+                        return const CircularProgressIndicator();
+                      }
+                      if (provider.comments.isEmpty) {
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -373,6 +420,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                             )
                           ],
                         );
+                      }
                       return _buildComments(provider.comments);
                     },
                   ),
@@ -455,7 +503,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
               children: [
                 Text(
                   detail.themeTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 15,
                     fontFamily: 'Pretendard',
@@ -467,7 +515,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                 ),
                 Text(
                   "${detail.brand} | ${detail.branch}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFFB9B9B9),
                     fontSize: 9,
                     fontFamily: 'Pretendard',
@@ -488,7 +536,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                             borderRadius: BorderRadius.circular(20)),
                         child: Text(
                           detail.location,
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: Colors.black,
                               fontSize: 9,
                               fontWeight: FontWeight.w700),
@@ -500,7 +548,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                       const SizedBox(width: 3),
                       Text(
                         '${detail.playTime}분',
-                        style: TextStyle(color: Colors.white, fontSize: 10),
+                        style: const TextStyle(color: Colors.white, fontSize: 10),
                       ),
                     ]),
                   ],
@@ -526,7 +574,7 @@ class _RecruitDetailPageState extends State<RecruitDetailPage> {
                         titleSize: 9,
                         imageSize: 19,
                         fontSize: 9,
-                        color: Color(0xffD90206)),
+                        color: const Color(0xffD90206)),
                     const SizedBox(width: 14),
                     _buildRatingItem(
                         titleSize: 9,

@@ -74,7 +74,7 @@ class _FilterRowWidgetState extends State<FilterRowWidget> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => SafeArea(child: const RegionBottomSheet()),
+      builder: (context) => const SafeArea(child: RegionBottomSheet()),
     );
 
     if (result != null) {
@@ -750,15 +750,17 @@ class _DifficultyBottomSheetState extends State<DifficultyBottomSheet> {
                         filterProvider.setLevel(null, null);
                         Navigator.pop(context, '난이도'); // 🎯 난이도 초기화
                       } else {
+                        filterProvider.setLevel(minLevel, maxLevel);
                         !Provider.of<SearchThemeProvider>(context,
                                     listen: false)
                                 .isSearching
                             ? {
+                                debugPrint('난이도 필터 적용'),
                                 await filterThemeProvider
                                     .fetchFilteredThemes(filterProvider),
-                                filterProvider.setLevel(minLevel, maxLevel)
                               }
                             : {
+                                debugPrint('난이도 검색 필터 적용'),
                                 await searchThemeProvider.searchThemes(
                                     date: searchThemeProvider.selectedDate,
                                     filterProvider: filterProvider)

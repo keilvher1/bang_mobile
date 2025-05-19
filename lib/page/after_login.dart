@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:scrd/page/my_saved_page.dart';
 import 'package:scrd/page/tier_page.dart';
 import 'package:scrd/utils/api_server.dart';
 
+import '../main.dart';
+import '../provider/jwt_provider.dart';
 import 'my_reply_page.dart';
 
 class AfterLogin extends StatefulWidget {
@@ -127,7 +130,7 @@ class _AfterLoginState extends State<AfterLogin> {
                       },
                       child: _buildCircleMenu(
                         "고객 센터",
-                        ["문의하기", "리뷰 일괄 입력"],
+                        [MapEntry("문의하기", () {}), MapEntry("리뷰 일괄 입력", () {})],
                         selectedCircle == "고객 센터",
                       ),
                     ),
@@ -141,7 +144,20 @@ class _AfterLoginState extends State<AfterLogin> {
                       },
                       child: _buildCircleMenu(
                         "더보기",
-                        ["ABOUT USCRD", "방탈출예약제휴"],
+                        [
+                          MapEntry("로그아웃", () {
+                            context.read<JwtProvider>().clearJwt();
+                            debugPrint('로그아웃 성공');
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const TotalLoginPage()),
+                            );
+                          }),
+                          MapEntry("회원탈퇴", () {
+                            // 회원탈퇴 로직 추가
+                          }),
+                        ],
                         selectedCircle == "더보기",
                       ),
                     ),
@@ -211,7 +227,7 @@ class _AfterLoginState extends State<AfterLogin> {
                 alignment: Alignment.center,
                 child: Text(
                   "HOLMES ($reviewCount)",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -296,7 +312,11 @@ class _AfterLoginState extends State<AfterLogin> {
   ];
 
   /// 하단의 원형 메뉴(고객 센터 / 더보기)
-  Widget _buildCircleMenu(String title, List<String> items, bool isSelected) {
+  Widget _buildCircleMenu(
+    String title,
+    List<MapEntry<String, VoidCallback>> items,
+    bool isSelected,
+  ) {
     return Container(
       width: 140,
       height: 140,
@@ -322,15 +342,18 @@ class _AfterLoginState extends State<AfterLogin> {
             ),
             const SizedBox(height: 8),
             ...items.map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 4.0),
-                child: Text(
-                  e,
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white70 : Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+              (entry) => GestureDetector(
+                onTap: entry.value,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Text(
+                    entry.key,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white70 : Colors.black54,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ),

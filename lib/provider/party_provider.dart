@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../model/party.dart';
 import '../utils/api_server.dart';
@@ -14,14 +15,14 @@ class PartyProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
 
-  Future<void> fetchInitialParties() async {
+  Future<void> fetchInitialParties(String? search) async {
     _parties = [];
     _currentPage = 0;
     _hasMore = true;
-    await fetchMoreParties();
+    await fetchMoreParties(search);
   }
 
-  Future<void> fetchMoreParties() async {
+  Future<void> fetchMoreParties(String? search) async {
     if (_isLoading || !_hasMore) return;
 
     _isLoading = true;
@@ -42,6 +43,19 @@ class PartyProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchPartyByDeadline(DateTime selectedDate) async {
+    final formatted = DateFormat('yyyy-MM-dd').format(selectedDate);
+    try {
+      debugPrint('Selected date: $formatted');
+      final parties = await ApiService().fetchPartiesByDate(formatted);
+      debugPrint('Fetched parties: $parties');
+      _parties = parties;
+      notifyListeners();
+    } catch (e) {
+      print('날짜 기반 파티 조회 실패: $e');
     }
   }
 }

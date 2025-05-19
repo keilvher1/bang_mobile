@@ -30,6 +30,8 @@ class _UploadPageState extends State<UploadPage> {
   bool isActive = false;
   bool isEscaped = false;
   int hintCount = 3;
+  int min = 0;
+  int sec = 0;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   TextEditingController titleController = TextEditingController();
@@ -41,6 +43,7 @@ class _UploadPageState extends State<UploadPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
   late SelectThemeProvider _selectThemeProvider;
+  late TagSelectionProvider _tagProvider;
 
   final Map<String, int> tagToIdMap = {
     "#감성적인": 1,
@@ -76,13 +79,14 @@ class _UploadPageState extends State<UploadPage> {
     super.didChangeDependencies();
     _selectThemeProvider =
         Provider.of<SelectThemeProvider>(context, listen: false);
+    _tagProvider = Provider.of<TagSelectionProvider>(context);
     isRecruitment = _selectThemeProvider.selectedMode == UploadMode.recruitment;
   }
 
   @override
   void dispose() {
     _selectThemeProvider.clearSelectedTheme(); // ✅ 안전하게 사용
-    Provider.of<TagSelectionProvider>(context, listen: false).clearTags();
+    _tagProvider.clearTags();
     super.dispose();
   }
 
@@ -128,12 +132,11 @@ class _UploadPageState extends State<UploadPage> {
         horror: isScary ? 1 : 0,
         activity: isActive ? 1 : 0,
         themeId: selectedTheme.id,
-        tagIds: selectedTags
-            .map((tag) => tagToIdMap[tag] ?? 0)
-            .where((id) => id != 0)
-            .toList(),
+        tagIds:
+            Provider.of<TagSelectionProvider>(context, listen: false).tagIds,
         isSuccessful: isEscaped,
         hintUsageCount: hintCount,
+        clearTime: "${min}:${sec}",
       );
       success = await provider.uploadReview(selectedTheme.id, review);
     } else {
@@ -287,17 +290,36 @@ class _UploadPageState extends State<UploadPage> {
 
   Widget _buildReviewSection() {
     List<String> tags = ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"];
-    List<List<String>> tagGroups = [
-      ["#감성적인", "#귀여운", "#신비한", "#스타일있는", "#미스테리한"],
-      ["#복고무드", "#아날로그감성", "#타임슬립체험", "#몽글몽글무드", "#러블리테마"],
-      ["#귀여움주의", "#달콤살벌", "#심쿵주의보", "#오싹한무드", "#긴장감폭발"],
-      ["#소름돋는감성", "#조용한공포", "#숨멎주의", "#긴장백배", "#심리공포감성"],
-      ["#섬세한연출", "#감성디테일", "#눈치게임시작", "#감정선폭발", "#잔잔한몰입감"],
-      ["#디테일맛집"]
+    List<Map<int, String>> tagGroups = [
+      {
+        1: "#감성적인",
+        2: "#귀여운",
+        3: "#신비한",
+        4: "#스타일있는",
+        5: "#미스테리한",
+      },
+      {
+        6: "#복고무드",
+        7: "#아날로그감성",
+        8: "#타임슬립체험",
+        9: "#몽글몽글무드",
+        10: "#러블리테마",
+      },
+      {
+        11: "#귀여움주의",
+        12: "#달콤살벌",
+        13: "#심쿵주의보",
+        14: "#오싹한무드",
+        15: "#긴장감폭발",
+      },
+      {
+        16: "#소름돋는감성",
+        17: "#조용한공포",
+        18: "#숨멎주의",
+        19: "#긴장백배",
+        20: "#심리공포감성",
+      },
     ];
-
-    int min = 0;
-    int sec = 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -313,6 +335,7 @@ class _UploadPageState extends State<UploadPage> {
             );
 
             if (result != null) {
+              debugPrint("Selected theme: $result");
               Provider.of<SelectThemeProvider>(context, listen: false)
                   .selectTheme(result);
             }

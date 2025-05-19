@@ -211,14 +211,16 @@ class ApiService {
       if (queryParameters.isEmpty ||
           ((region == "전체" || region == null) &&
               ((horror == 0 || horror == null) &&
-                  (activity == 0 || activity == null)))) {
+                  (activity == 0 || activity == null) &&
+                  (levelMin == 1 || levelMin == null) &&
+                  (levelMax == 5 || levelMax == null)))) {
         debugPrint("No filters applied 2");
         uri = Uri.parse(
           '${ApiConstants.baseUrl}/scrd/api/theme/paged?page=0&size=20&platform=mobile&date=$formattedDate',
         );
       } else {
         debugPrint("ApiConstants.baseHost: ${ApiConstants.baseHost}");
-        uri = Uri.http(
+        uri = Uri.https(
           ApiConstants.baseHost,
           '/scrd/api/theme/filter',
           queryParameters,
@@ -298,14 +300,15 @@ class ApiService {
     }
   }
 
-  Future<List<SavedThemeModel>> fetchSavedThemes() async {
+  Future<List<SavedThemeModel>> fetchSavedThemes({required String date}) async {
     try {
       final accessToken = await secureStorage.readToken("x-access-token");
       if (accessToken == null || accessToken.isEmpty) {
         throw Exception("No access token found.");
       }
 
-      Uri uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.mySavedList}');
+      Uri uri = Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.mySavedList}?date=$date');
       debugPrint("Request URL: $uri"); // 요청 URL 확인
 
       final response = await http.get(
@@ -367,30 +370,6 @@ class ApiService {
     } catch (e) {
       debugPrint('Exception saving theme: $e');
       return false;
-    }
-  }
-
-  Future<List<String>> fetchAvailableTimes(int themeId, String date) async {
-    try {
-      final accessToken = await secureStorage.readToken("x-access-token");
-      final uri = Uri.parse(
-          'http://localhost:8080/scrd/api/theme/$themeId/available-times?date=$date');
-
-      final response = await http.get(uri, headers: {
-        "Authorization": "Bearer $accessToken",
-        "Accept": "application/json",
-      });
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(utf8.decode(response.bodyBytes));
-        final times = List<String>.from(json['availableTime']);
-        return times;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      debugPrint('Error fetching available times: $e');
-      return [];
     }
   }
 
@@ -554,7 +533,7 @@ class ApiService {
 
         _sseSubscription = response.stream
             .transform(utf8.decoder)
-            .transform(LineSplitter())
+            .transform(const LineSplitter())
             .listen((line) async {
           if (line.trim().isNotEmpty) {
             debugPrint("📥 SSE 수신: $line");
@@ -632,6 +611,7 @@ class ApiService {
     } else if (response.statusCode == 400) {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       if (body['message'] == '이미 신청한 일행입니다.') {
+        debugPrint("이미 신청한 일행입니다.");
         cancelJoinParty(postId);
         return false; // 이미 신청 → 취소로 간주
       }
@@ -757,7 +737,7 @@ class ApiService {
         if (levelMax != null) 'levelMax': levelMax.toString(),
       };
       debugPrint("🔍 Search Filtered Themes Query Params: $queryParams");
-      final uri = Uri.http(
+      final uri = Uri.https(
         ApiConstants.baseHost,
         '/scrd/api/theme/search/filtered',
         queryParams,
@@ -809,6 +789,84 @@ class ApiService {
     } catch (e) {
       debugPrint("❗ 리뷰 개수 요청 중 오류 발생: $e");
       rethrow;
+    }
+  }
+
+  Future<bool> validateToken(String token) async {
+    final response = await http.get(
+      Uri.parse("${ApiConstants.baseUrl}/auth/validate"),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteReview(int reviewId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    final url = Uri.parse('${ApiConstants.baseUrl}/scrd/api/review/$reviewId');
+    debugPrint("Delete Review URL: $url");
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('리뷰 삭제 실패: ${response.statusCode}, ${response.body}');
+      return false;
+    }
+  }
+
+  Future<bool> deleteUser(int userId) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+    final url = Uri.parse('${ApiConstants.baseUrl}/scrd/api/user/delete');
+    debugPrint("Delete User URL: $url");
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('회원 탈퇴 실패: ${response.statusCode}, ${response.body}');
+      return false;
+    }
+  }
+
+  Future<List<Party>> fetchPartiesByDate(String date) async {
+    final accessToken = await secureStorage.readToken("x-access-token");
+
+    final url = Uri.parse(
+        '${ApiConstants.baseUrl}/scrd/api/party/paged?deadline=$date');
+    debugPrint("Fetch Parties by Date URL: $url");
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+    debugPrint("ResponseCode: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final decodedBody = utf8.decode(response.bodyBytes);
+      debugPrint("Party ResponseBody: $decodedBody");
+
+      final Map<String, dynamic> body = jsonDecode(decodedBody);
+      final List<dynamic> partyList = body['data'];
+      debugPrint("Party List: $partyList");
+      return partyList.map((json) => Party.fromJson(json)).toList();
+    } else {
+      throw Exception('파티 날짜 검색 실패: ${response.statusCode}');
     }
   }
 }

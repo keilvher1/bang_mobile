@@ -8,6 +8,7 @@ class ReviewUpload {
   final List<int> tagIds; // 해시태그 ID 리스트
   final bool isSuccessful; // 성공 여부
   final int hintUsageCount; // 힌트 사용 횟수
+  final String clearTime; // 클리어 시간 (null 가능)
 
   ReviewUpload({
     required this.text,
@@ -19,6 +20,7 @@ class ReviewUpload {
     required this.tagIds,
     required this.isSuccessful,
     required this.hintUsageCount,
+    required this.clearTime,
   });
 
   Map<String, dynamic> toJson() => {
@@ -31,5 +33,6 @@ class ReviewUpload {
         "tagIds": tagIds,
         "isSuccessful": isSuccessful,
         "hintUsageCount": hintUsageCount,
+        "clearTime": clearTime,
       };
 }
